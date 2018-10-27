@@ -1,22 +1,22 @@
 public class Entity{
-  private String name;
-  private Image img;
+  private String _name;
+  private Image _img;
 
   public Entity(String name, Image img){
-    this.name = name;
-    this.img = img;
+    this._name = name;
+    this._img = img;
   }
 
   public String getName(){
-    return name;
+    return this._name;
   }
 
   public Image getImage(){
-    return img;
+    return this._img;
   }
 
   public boolean equals (Object o){
-    if(this.name.equals(o.toString()))
+    if(this._name.equals(o.toString()))
       return true;
     else{
       return false;
@@ -24,6 +24,6 @@ public class Entity{
   }
 
   public String toString(){
-    return name;
+    return this._name;
   }
 }

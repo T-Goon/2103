@@ -1,20 +1,20 @@
 import java.util.*;
 
 public class Moment extends Entity{
-  private ArrayList<LivingThing> participants;
-  private ArrayList<Float> smileValues;
+  private ArrayList<LivingThing> _participants;
+  private ArrayList<Float> _smileValues;
 
   public Moment(String name, Image img, ArrayList participants, ArrayList smileValues){
     super(name, img);
-    this.participants = participants;
-    this.smileValues = smileValues;
+    this._participants = participants;
+    this._smileValues = smileValues;
   }
 
   public ArrayList getParticipants(){
-    return participants;
+    return this._participants;
   }
 
   public ArrayList getSmileValues(){
-    return smileValues;
+    return this._smileValues;
   }
 }
