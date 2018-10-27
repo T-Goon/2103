@@ -25,12 +25,41 @@ public class LivingThing extends Entity{
   }
 
   public Moment getOverallHappiestMoment (){
+    if(this._moments.isEmpty())
+      return null;
 
-    return new Moment("", new Image(""), new ArrayList<LivingThing>(),
-    new ArrayList<LivingThing>());
+    Moment happiestMoment = this._moments.get(0);
+    float happiestMomentAverageSmileValue = this.average(this._moments.get(0).getSmileValues());
+
+    for(int i=1;i<this._moments.size();i++){
+      float average = this.average(this._moments.get(i).getSmileValues());
+
+      if(average > happiestMomentAverageSmileValue){
+        happiestMomentAverageSmileValue = average;
+        happiestMoment = this._moments.get(i);
+      }
+    }
+    return happiestMoment;
+  }
+
+  // Averages an ArrayList of smileValues
+  public float average(ArrayList<Float> lst){
+    float sum = 0f;
+    int n = 0;
+    for(int i=0;i<lst.size();i++){
+      sum += lst.get(i);
+      n++;
+    }
+
+    return sum/(float)n;
   }
 
   public LivingThing getFriendWithWhomIAmHappiest (){
+    // No friends
+    if(this._friends.isEmpty()){
+      return null;
+    }
+
     // List to hold lists of:
     //[LivingThing, smileValue, smileValue,...]
     // which are friends of this LivingThing
@@ -68,9 +97,7 @@ public class LivingThing extends Entity{
           }
         }
       }
-
     }
-
     // If no friends are in the moments then return null
     if(friendsInMoment.isEmpty()){
       return null;
