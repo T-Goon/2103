@@ -2,7 +2,7 @@ import java.util.*;
 
 public class LivingThing extends Entity{
   private ArrayList<LivingThing> _friends = new ArrayList<LivingThing>();
-  private ArrayList<Moment> _moments;
+  private ArrayList<Moment> _moments =  new ArrayList<Moment>();
 
   public LivingThing(String name, Image img){
     super(name, img);
@@ -28,10 +28,12 @@ public class LivingThing extends Entity{
     if(this._moments.isEmpty())
       return null;
 
+    // set initial happiest moment to the first one in the ArrayList
     Moment happiestMoment = this._moments.get(0);
     float happiestMomentAverageSmileValue = this.average(this._moments.get(0).getSmileValues());
 
     for(int i=1;i<this._moments.size();i++){
+      // average happiness of moments besides the first
       float average = this.average(this._moments.get(i).getSmileValues());
 
       if(average > happiestMomentAverageSmileValue){
@@ -43,7 +45,7 @@ public class LivingThing extends Entity{
   }
 
   // Averages an ArrayList of smileValues
-  public float average(ArrayList<Float> lst){
+  public static float average(ArrayList<Float> lst){
     float sum = 0f;
     int n = 0;
     for(int i=0;i<lst.size();i++){
@@ -76,7 +78,7 @@ public class LivingThing extends Entity{
 
         // Make sure other person in moment is a friend
         if (this._friends.contains(participant)){
-          // Check if friend is already in list f
+          // Check if friend is already in list friendsInMoment
           if(this.isin(friendsInMoment,participant)){
             // find friend and add the smile value to the end of the friends
             //row
@@ -126,7 +128,7 @@ public class LivingThing extends Entity{
   ...
   ]
   */
-  private  ArrayList averageRows(ArrayList<ArrayList> lst){
+  private static ArrayList averageRows(ArrayList<ArrayList> lst){
     // result ArrayList
     ArrayList res = new ArrayList();
 
@@ -159,7 +161,7 @@ public class LivingThing extends Entity{
 
   Returns the LivingThing/smileValue pair maximum float value out of all the rows.
   */
-  private ArrayList maxSmile(ArrayList<ArrayList> lst){
+  private static ArrayList maxSmile(ArrayList<ArrayList> lst){
     ArrayList max = new ArrayList();
     // default values
     max.add(new Person("",new Image("")));
@@ -202,7 +204,7 @@ public class LivingThing extends Entity{
 
   Returns true if the LivingThing is in the ArrayList's rows, else false.
   */
-  private boolean isin(ArrayList<ArrayList> lst, LivingThing a){
+  private static boolean isin(ArrayList<ArrayList> lst, LivingThing a){
     for(int i=0;i<lst.size();i++){
       if(lst.get(i).get(0).equals(a)){
         return true;
@@ -210,4 +212,51 @@ public class LivingThing extends Entity{
     }
     return false;
   }
+
+  public static boolean isClique(ArrayList<LivingThing> set){
+    int setSize = set.size();
+    for(int i=0;i<setSize;i++){
+      for(int j=0;j<setSize;j++){
+        if(!(i == j) && !set.get(i).getFriends().contains(set.get(j))){
+          return false;
+        }
+      }
+
+    }
+
+    return true;
+  }
+
+  /*
+  Takes in a ArrayList and returns a portion of that ArrayList from first
+  inclusive to last exclusive.
+
+  Same as ArrayList.subList(int first, int last) but returns type ArrayList.
+  */
+  private static ArrayList getRange(ArrayList array, int first, int last){
+    ArrayList result = new ArrayList();
+    for(int i=first;i<last;i++){
+      result.add(array.get(i));
+    }
+
+    return result;
+  }
+
+  public ArrayList findMaximumCliqueOfFriends(){
+
+    for(int i=this._friends.size();i>0;i--){
+      int first = 0;
+      int last = i;
+      for(int j=0;j<=this._friends.size()-i;j++){
+        ArrayList subList = LivingThing.getRange(this._friends, first, last);
+        if(LivingThing.isClique(subList))
+          return subList;
+        first++;
+        last++;
+      }
+    }
+
+    return new ArrayList();
+  }
+
 }

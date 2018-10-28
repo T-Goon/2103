@@ -13,7 +13,7 @@ public class FacebukPartialTester {
 	private Person _barack, _michelle, _kevin, _ina, _joe, _malia;
 	private Pet _bo, _sunny;
 	private Moment _meAndBarack;
-	private ArrayList _michelleAndBarack, _michelleJoeBoAndMalia;
+	private ArrayList _michelleAndBarack, _michelleJoeBoAndMalia, _boList;
 
 	@Before
 	public void setUp () {
@@ -71,20 +71,19 @@ public class FacebukPartialTester {
 		michelleList.add(_michelle);
 
 		// Bo
-		final ArrayList boList = new ArrayList();
-		boList.add(_bo);
+		_boList = new ArrayList();
+		_boList.add(_bo);
 
 		// Set people's friend lists
 		_michelle.setFriends(michelleFriends);
-		_malia.setFriends(boList);
-		_sunny.setFriends(boList);
+		_malia.setFriends(_boList);
 		_barack.setFriends(michelleList);
 		_kevin.setFriends(michelleList);
 		_ina.setFriends(michelleList);
 
 		// Finish configuring pets
 		_bo.setFriends(maliaAndSunny);
-		_sunny.setFriends(boList);
+		_sunny.setFriends(_boList);
 		final ArrayList boAndSunny = new ArrayList();
 		boAndSunny.add(_bo);
 		boAndSunny.add(_sunny);
@@ -175,99 +174,215 @@ public class FacebukPartialTester {
 		friendRequest.approve(person3);
 	}
 
-	// TODO: write more methods to test addFriend
-	// TODO: write more methods to test approve
-
-	// TODO: write more methods to test getFriendWithWhomIAmHappiest
-	final Person p = new Person("", new Image(""));
-	final Person a = new Person("A", new Image("A.jpg"));
-	final Person b = new Person("B", new Image("B.jpg"));
-	final ArrayList part = new ArrayList();
-	final ArrayList part2 = new ArrayList();
-	final ArrayList part3 = new ArrayList();
-	final ArrayList smile = new ArrayList();
-	final ArrayList smile2 = new ArrayList();
-	final ArrayList smile3 = new ArrayList();
+	final Person _p = new Person("", new Image(""));
+	final Person _a = new Person("A", new Image("A.jpg"));
+	final Person _b = new Person("B", new Image("B.jpg"));
+	final ArrayList _part = new ArrayList();
+	final ArrayList _part2 = new ArrayList();
+	final ArrayList _part3 = new ArrayList();
+	final ArrayList _smile = new ArrayList();
+	final ArrayList _smile2 = new ArrayList();
+	final ArrayList _smile3 = new ArrayList();
 
 	private void setTestVars(){
-		part.add(a);
-		part.add(p);
+		_part.add(_a);
+		_part.add(_p);
 
-		part2.add(p);
-		part2.add(b);
+		_part2.add(_p);
+		_part2.add(_b);
 
-		part3.add(p);
-		part3.add(b);
+		_part3.add(_p);
+		_part3.add(_b);
 
-		smile.add(0f);
-		smile.add(10f);
+		_smile.add(0f);
+		_smile.add(10f);
 
-		smile2.add(20f);
-		smile2.add(0f);
+		_smile2.add(20f);
+		_smile2.add(0f);
 
-		smile3.add(200f);
-		smile3.add(0f);
+		_smile3.add(200f);
+		_smile3.add(0f);
 	}
 
+	// TODO: write more methods to test addFriend
 
 	@Test
-	public void testGetFriendWithWhomIAmHappiestNull () {
-		Person p = new Person("a",new Image(""));
-		p.setFriends(new ArrayList());
-		assertEquals(p.getFriendWithWhomIAmHappiest(), null);
+	public void testAddFriend(){
+		_p.addFriend(_bo);
+		assertEquals(true, _p.getFriends().contains(_bo));
 	}
 
+	@Test
+	public void testAddFriend2(){
+		_a.addFriend(_barack);
+		assertEquals(true, _a.getFriends().contains(_barack));
+	}
+
+	// TODO: write more methods to test approve
+
+	// Successful friend request approval
+	@Test
+	public void testApprove(){
+		FriendRequest request =  new FriendRequest(_p, _a);
+		request.approve(_a);
+		request.approve(_p);
+
+		assertEquals(true, _a.getFriends().contains(_p));
+		assertEquals(true, _p.getFriends().contains(_a));
+	}
+
+	// TODO: write more methods to test getFriendWithWhomIAmHappiest
+
+	// Friends tied for average happiness value, returns one of them
+	@Test
+	public void testGetFriendWithWhomIAmHappiest2() {
+		ArrayList<Person> friends = new ArrayList<Person>();
+		friends.add(_a);
+		friends.add(_b);
+
+		ArrayList<Moment> m = new ArrayList<Moment>();
+		ArrayList<Person> part =  new ArrayList<Person>();
+		part.add(_p);
+		part.add(_a);
+		part.add(_b);
+		ArrayList smile = new ArrayList();
+		smile.add(5f);
+		smile.add(5f);
+		smile.add(5f);
+
+		m.add(new Moment("", new Image(""), part, smile));
+
+		_p.setFriends(friends);
+		_p.setMoments(m);
+		assertEquals(_a, _p.getFriendWithWhomIAmHappiest());
+	}
+
+	// person has no moments
+	@Test
+	public void testGetFriendWithWhomIAmHappiestNull () {
+		_p.setFriends(new ArrayList());
+		assertEquals(_p.getFriendWithWhomIAmHappiest(), null);
+	}
+
+	// has moments and friends but friends are not in any moments
 	@Test
 	public void testGetFriendWithWhomIAmHappiestNull2 () {
 		ArrayList<Person> friends = new ArrayList<Person>();
-		friends.add(a);
+		friends.add(_a);
 
 		ArrayList<Moment> m = new ArrayList<Moment>();
-		ArrayList<LivingThing> part2 = new ArrayList<LivingThing>();
-		part2.add(p);
-		part2.add(b);
-		ArrayList<Float> smile2 = new ArrayList<Float>();
-		smile2.add(19f);
-		smile2.add(0f);
 
-		m.add(new Moment("two", new Image(""), part2, smile2));
 
-		p.setFriends(friends);
-		p.setMoments(m);
+		m.add(new Moment("two", new Image(""), _part2, _smile2));
 
-		assertEquals(null, p.getFriendWithWhomIAmHappiest());
+		_p.setFriends(friends);
+		_p.setMoments(m);
+
+		assertEquals(null, _p.getFriendWithWhomIAmHappiest());
 	}
 
 	// TODO: write more methods to test getOverallHappiestMoment
 
 	@Test
-	public void testGetOverallHappiestMoment2 () {
-		ArrayList<Person> friends = new ArrayList<Person>();
-		friends.add(a);
-		friends.add(b);
-
+	public void testGetOverallHappiestMoment () {
 		ArrayList<Moment> m = new ArrayList<Moment>();
 
-		m.add(new Moment("one", new Image(""), part, smile));
-		m.add(new Moment("two", new Image(""), part2, smile2));
-		m.add(new Moment("three", new Image(""), part3, smile3));
+		m.add(new Moment("one", new Image(""), _part, _smile));
 
-		p.setFriends(friends);
-		p.setMoments(m);
+		_p.setMoments(m);
 
-		assertEquals(m.get(2), p.getOverallHappiestMoment());
+		assertEquals(m.get(0), _p.getOverallHappiestMoment());
+	}
+
+	@Test
+	public void testGetOverallHappiestMoment2 () {
+		ArrayList<Moment> m = new ArrayList<Moment>();
+
+		m.add(new Moment("one", new Image(""), _part, _smile));
+		m.add(new Moment("two", new Image(""), _part2, _smile2));
+		m.add(new Moment("three", new Image(""), _part3, _smile3));
+
+		_p.setMoments(m);
+
+		assertEquals(m.get(2), _p.getOverallHappiestMoment());
 	}
 
 	@Test
 	public void testGetOverallHappiestMomentNull () {
-		Person p = new Person("a",new Image(""));
-		p.setMoments(new ArrayList());
+		Person _p = new Person("a",new Image(""));
+		_p.setMoments(new ArrayList());
 
-		assertEquals(null, p.getOverallHappiestMoment());
+		assertEquals(null, _p.getOverallHappiestMoment());
 	}
 
-
-
 	// TODO: write methods to test isClique
+	@Test
+	public void testIsClique(){
+		assertEquals(true, LivingThing.isClique(_michelleAndBarack));
+	}
+
+	@Test
+	public void testIsClique2(){
+		ArrayList empty = new ArrayList();
+		assertEquals(true, LivingThing.isClique(empty));
+	}
+
+	@Test
+	public void testIsClique3(){
+		assertEquals(false, LivingThing.isClique(_michelleJoeBoAndMalia));
+	}
+
+	@Test
+	public void testIsClique4(){
+		ArrayList<LivingThing> loner = new ArrayList<LivingThing>();
+		ArrayList<LivingThing> pList = new ArrayList<LivingThing>();
+		_p.setFriends(pList);
+		loner.add(_p);
+
+
+		assertEquals(true, LivingThing.isClique(loner));
+	}
+
+	@Test
+	public void testIsClique5(){
+		ArrayList<LivingThing> friendsList = new ArrayList<LivingThing>();
+		friendsList.add(_p);
+		friendsList.add(_a);
+		friendsList.add(_b);
+		ArrayList<LivingThing> pFriends = new ArrayList<LivingThing>();
+		pFriends.add(_a);
+		pFriends.add(_b);
+		ArrayList<LivingThing> aFriends = new ArrayList<LivingThing>();
+		aFriends.add(_p);
+		aFriends.add(_b);
+		ArrayList<LivingThing> bFriends = new ArrayList<LivingThing>();
+		bFriends.add(_p);
+		bFriends.add(_a);
+		_p.setFriends(pFriends);
+		_a.setFriends(aFriends);
+		_b.setFriends(bFriends);
+
+		assertEquals(true, LivingThing.isClique(friendsList));
+	}
+
 	// TODO: write methods to test findMaximumCliqueOfFriends
+	@Test
+	public void testMaximumCliqueOfFriends(){
+
+		assertEquals(_boList, _sunny.findMaximumCliqueOfFriends());
+	}
+
+	@Test
+	public void testMaximumCliqueOfFriends2(){
+		ArrayList kevinList = new ArrayList();
+		kevinList.add(_kevin);
+		assertEquals(kevinList, _michelle.findMaximumCliqueOfFriends());
+	}
+
+	@Test
+	public void testMaximumCliqueOfFriendsNoFriends(){
+		ArrayList empty = new ArrayList();
+		assertEquals(empty, _joe.findMaximumCliqueOfFriends());
+	}
+
 }
