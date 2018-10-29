@@ -45,7 +45,7 @@ public class LivingThing extends Entity{
   }
 
   // Averages an ArrayList of smileValues
-  public static float average(ArrayList<Float> lst){
+  private static float average(ArrayList<Float> lst){
     float sum = 0f;
     int n = 0;
     for(int i=0;i<lst.size();i++){
@@ -101,9 +101,8 @@ public class LivingThing extends Entity{
       }
     }
     // If no friends are in the moments then return null
-    if(friendsInMoment.isEmpty()){
+    if(friendsInMoment.isEmpty())
       return null;
-    }
     //average the smile values in rows of f
     //find max average smile value and return
     return (LivingThing)this.maxSmile(this.averageRows(friendsInMoment)).get(0);
@@ -136,6 +135,7 @@ public class LivingThing extends Entity{
     for(int i=0;i<lst.size();i++){
       float n = 0;
       float sum = 0;
+
       for(int j=1;j<lst.get(i).size();j++){
         sum += (float)lst.get(i).get(j);
         n++;
@@ -215,15 +215,10 @@ public class LivingThing extends Entity{
 
   public static boolean isClique(ArrayList<LivingThing> set){
     int setSize = set.size();
-    for(int i=0;i<setSize;i++){
-      for(int j=0;j<setSize;j++){
-        if(!(i == j) && !set.get(i).getFriends().contains(set.get(j))){
+    for(int i=0;i<setSize;i++)
+      for(int j=0;j<setSize;j++)
+        if(!(i == j) && !set.get(i).getFriends().contains(set.get(j)))
           return false;
-        }
-      }
-
-    }
-
     return true;
   }
 
@@ -235,9 +230,8 @@ public class LivingThing extends Entity{
   */
   private static ArrayList getRange(ArrayList array, int first, int last){
     ArrayList result = new ArrayList();
-    for(int i=first;i<last;i++){
+    for(int i=first;i<last;i++)
       result.add(array.get(i));
-    }
 
     return result;
   }
