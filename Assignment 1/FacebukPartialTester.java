@@ -385,4 +385,31 @@ public class FacebukPartialTester {
 		assertEquals(empty, _joe.findMaximumCliqueOfFriends());
 	}
 
+	@Test
+	public void testMaximumCliqueOfFriends3(){
+		LivingThing  w = new LivingThing("w", new Image("w"));
+		ArrayList<LivingThing> pFriends = new ArrayList<LivingThing>();
+		pFriends.add(_a);
+		pFriends.add(_b);
+		pFriends.add(w);
+		ArrayList<LivingThing> aFriends = new ArrayList<LivingThing>();
+		aFriends.add(_p);
+		aFriends.add(w);
+		ArrayList<LivingThing> bFriends = new ArrayList<LivingThing>();
+		bFriends.add(_p);
+		ArrayList<LivingThing> wFriends = new ArrayList<LivingThing>();
+		wFriends.add(_p);
+		wFriends.add(_a);
+		_p.setFriends(pFriends);
+		_a.setFriends(aFriends);
+		_b.setFriends(bFriends);
+		w.setFriends(wFriends);
+
+		ArrayList<LivingThing> result =  new ArrayList<LivingThing>();
+		result.add(_a);
+		result.add(w);
+		
+		assertEquals(result, _p.findMaximumCliqueOfFriends());
+	}
+
 }

@@ -222,35 +222,42 @@ public class LivingThing extends Entity{
     return true;
   }
 
-  /*
-  Takes in a ArrayList and returns a portion of that ArrayList from first
-  inclusive to last exclusive.
+  public ArrayList findMaximumCliqueOfFriends(){
+    ArrayList<ArrayList<LivingThing>> result = new ArrayList<ArrayList<LivingThing>>();
+    int n = this._friends.size();
 
-  Same as ArrayList.subList(int first, int last) but returns type ArrayList.
-  */
-  private static ArrayList getRange(ArrayList array, int first, int last){
-    ArrayList result = new ArrayList();
-    for(int i=first;i<last;i++)
-      result.add(array.get(i));
+    for(int i=1;i<=this._friends.size();i++){
+      getCombination(n, i, 0, new ArrayList<LivingThing>(), result);
+    }
+
+    for(int i=result.size()-1;i>=0;i--){
+      if(!LivingThing.isClique(result.get(i))){
+        result.remove(i);
+      }
+    }
+
+    for(int i=this._friends.size();i>0;i--){
+      for(int j=0;j<result.size();j++){
+        if(i == result.get(j).size())
+          return result.get(j);
+      }
+    }
 
     return result;
   }
 
-  public ArrayList findMaximumCliqueOfFriends(){
+  private void getCombination(int n, int k, int start, ArrayList<LivingThing> item,
+  		ArrayList<ArrayList<LivingThing>> res) {
+  	if (item.size() == k) {
+  		res.add(new ArrayList<LivingThing>(item));
+  		return;
+  	}
 
-    for(int i=this._friends.size();i>0;i--){
-      int first = 0;
-      int last = i;
-      for(int j=0;j<=this._friends.size()-i;j++){
-        ArrayList subList = LivingThing.getRange(this._friends, first, last);
-        if(LivingThing.isClique(subList))
-          return subList;
-        first++;
-        last++;
-      }
-    }
-
-    return new ArrayList();
+  	for (int i = start; i < n; i++) {
+  		item.add(this._friends.get(i));
+  		getCombination(n, k, i + 1, item, res);
+  		item.remove(item.size() - 1);
+  	}
   }
 
 }
