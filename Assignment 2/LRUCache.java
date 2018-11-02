@@ -4,7 +4,7 @@ import java.util.HashMap;
  * An implementation of <tt>Cache</tt> that uses a least-recently-used (LRU)
  * eviction policy.
  */
-public class LRUCache<T, U> implements Cache<T, U> {
+public class LRUCache<T, U> implements Cache<T, U>{
 	private HashMap<T, Element> _storage;
 	private Element<T, U> _firstElement; // First element of linked list
 	private Element<T, U> _lastElement; // Last element of linked list
@@ -39,12 +39,20 @@ public class LRUCache<T, U> implements Cache<T, U> {
 			this._numMisses++;
 		}
 		else{ // cache hit
-			result = holdingElement.getValue();
+			result = holdingElement._value;
+			// Moves called element to the front of the list
+			holdingElement._leftElement._rightElement = holdingElement._rightElement;
+			// Don't do if called element is already in the back of the list
+			if(holdingElement._rightElement != null)
+				holdingElement._rightElement._leftElement = holdingElement._leftElement;
+			this.add(holdingElement);
 		}
 
 		return result;
 	}
 
+	// Creates new elements in HashMap and LinkedList
+	// If linked list if full remove the least recently used value (first element)
 	private void storeResult(T key, U result){
 		Element<T, U> e = new Element<T, U>(key, result);
 
@@ -55,21 +63,19 @@ public class LRUCache<T, U> implements Cache<T, U> {
 		}
 
 		this._storage.put(key, e);
-		this.setPointers(e);
+		this.add(e);
 	}
-	private void setPointers(Element<T, U> e){
-		if(this._storage.size() == 0){ // Special size 0 case
+
+	// adds node to end of linked list
+	private void add(Element<T, U> e){
+		if(this._firstElement == null){ // Special size 0 case
 			this._firstElement = e;
 			this._lastElement = e;
 		}
-		else if(this._storage.size() == 1){ // Special size 1 case
-			this._lastElement = e;
-			this._firstElement.setRightElement(this._lastElement);
-			this._lastElement.setLeftElement(this._firstElement);
-		}
 		else{ // Generic addition to end of linked list
-			e.setLeftElement(this._lastElement);
-			this._lastElement.setRightElement(e);
+			e._leftElement = this._lastElement;
+			e._rightElement = null;
+			this._lastElement._rightElement = e;
 			this._lastElement = e;
 		}
 }
@@ -80,5 +86,40 @@ public class LRUCache<T, U> implements Cache<T, U> {
 	 */
 	public int getNumMisses () {
 		return this._numMisses;
+	}
+
+	public class Element<K, E>{
+	  private Element<K, E> _leftElement;
+	  private Element<K, E> _rightElement;
+	  private E _value;
+	  private K _key;
+
+	  protected Element(K key, E value){
+	    this._value = value;
+	  }
+
+	  protected E getValue(){
+	    return this._value;
+	  }
+
+	  protected K getKey(){
+	    return this._key;
+	  }
+
+	  protected void setLeftElement(Element<K, E> e){
+	    this._leftElement = e;
+	  }
+
+	  protected Element<K, E> getLeftElement(){
+	    return this._leftElement;
+	  }
+
+	  protected void setRightElement(Element<K, E> e){
+	    this._rightElement = e;
+	  }
+
+	  protected Element<K, E> getRightElement(){
+	    return this._rightElement;
+	  }
 	}
 }
