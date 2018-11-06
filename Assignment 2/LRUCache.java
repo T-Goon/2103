@@ -10,7 +10,6 @@ public class LRUCache<T, U> implements Cache<T, U>{
 	private Element<T, U> _lastElement; // Last element of linked list
 	private final DataProvider<T, U> _provider;
 	private final int _capacity; // max size if HashMap
-	private static final float LOAD_FACTOR = 1; // So that HashMap does not resize itself
 	private int _numMisses;
 
 	/**
@@ -18,7 +17,10 @@ public class LRUCache<T, U> implements Cache<T, U>{
 	 * @param capacity the exact number of (key,value) pairs to store in the cache
 	 */
 	public LRUCache (DataProvider<T, U> provider, int capacity) {
-		this._storage = new HashMap<T, Element>(capacity, LRUCache.LOAD_FACTOR);
+		if(capacity < 1)
+			throw new IllegalArgumentException("Capacity must be greater than or equal to 1.");
+
+		this._storage = new HashMap<T, Element>(capacity);
 		this._provider = provider;
 		this._capacity = capacity;
 		this._numMisses = 0;
@@ -31,7 +33,7 @@ public class LRUCache<T, U> implements Cache<T, U>{
 	 */
 	public U get (T key) {
 		U result;
-		Element<T, U> holdingElement = (Element<T, U>)this._storage.get(key); // TODO unchecked cast find out how to fix
+		final Element<T, U> holdingElement = (Element<T, U>)this._storage.get(key);
 
 		if(holdingElement == null){ // cache miss
 			result = (U)this._provider.get(key);
@@ -41,7 +43,13 @@ public class LRUCache<T, U> implements Cache<T, U>{
 		else{ // cache hit
 			result = holdingElement._value;
 			// Moves called element to the front of the list
-			holdingElement._leftElement._rightElement = holdingElement._rightElement;
+			// Don't do if holdingElement is the _firstElement
+			if(holdingElement._leftElement != null){
+				holdingElement._leftElement._rightElement = holdingElement._rightElement;
+			}
+			else{
+				this._firstElement = this._firstElement._rightElement;
+			}
 			// Don't do if called element is already in the back of the list
 			if(holdingElement._rightElement != null)
 				holdingElement._rightElement._leftElement = holdingElement._leftElement;
@@ -51,22 +59,29 @@ public class LRUCache<T, U> implements Cache<T, U>{
 		return result;
 	}
 
-	// Creates new elements in HashMap and LinkedList
-	// If linked list if full remove the least recently used value (first element)
+	/**
+	 * Creates new elements in HashMap and LinkedList
+	 * If HashMap is full remove the least recently used key-value pair,(first element)
+	 * @param key new nodes key
+	 * @param result the LinkedList node that the HashMap points to
+	 */
 	private void storeResult(T key, U result){
-		Element<T, U> e = new Element<T, U>(key, result);
+		final Element<T, U> e = new Element<T, U>(key, result);
 
-		if(this._storage.size() == this._capacity){ // HashMap is full
-			this._storage.remove(this._firstElement.getKey());
-			this._firstElement = this._firstElement.getRightElement();
-			this._firstElement.setLeftElement(null);
+		if(this._storage.size() >= this._capacity){ // HashMap is full
+			this._storage.remove(this._firstElement._key);
+			this._firstElement = this._firstElement._rightElement;
+			this._firstElement._leftElement = null;
 		}
 
 		this._storage.put(key, e);
 		this.add(e);
 	}
 
-	// adds node to end of linked list
+	/**
+	 * adds node to end of linked list
+	 * @param e elemnt to be added to the end of the LinkedList
+	 */
 	private void add(Element<T, U> e){
 		if(this._firstElement == null){ // Special size 0 case
 			this._firstElement = e;
@@ -96,30 +111,12 @@ public class LRUCache<T, U> implements Cache<T, U>{
 
 	  protected Element(K key, E value){
 	    this._value = value;
+			this._key = key;
 	  }
 
-	  protected E getValue(){
-	    return this._value;
-	  }
+		public  String toString(){
+			return this._value.toString();
+		}
 
-	  protected K getKey(){
-	    return this._key;
-	  }
-
-	  protected void setLeftElement(Element<K, E> e){
-	    this._leftElement = e;
-	  }
-
-	  protected Element<K, E> getLeftElement(){
-	    return this._leftElement;
-	  }
-
-	  protected void setRightElement(Element<K, E> e){
-	    this._rightElement = e;
-	  }
-
-	  protected Element<K, E> getRightElement(){
-	    return this._rightElement;
-	  }
 	}
 }
