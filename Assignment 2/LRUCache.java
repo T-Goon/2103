@@ -1,11 +1,11 @@
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * An implementation of <tt>Cache</tt> that uses a least-recently-used (LRU)
  * eviction policy.
  */
 public class LRUCache<T, U> implements Cache<T, U>{
-	private HashMap<T, Element> _storage;
+	private Map<T, Element> _storage;
 	private Element<T, U> _firstElement; // First element of linked list
 	private Element<T, U> _lastElement; // Last element of linked list
 	private final DataProvider<T, U> _provider;
@@ -36,23 +36,29 @@ public class LRUCache<T, U> implements Cache<T, U>{
 		final Element<T, U> holdingElement = (Element<T, U>)this._storage.get(key);
 
 		if(holdingElement == null){ // cache miss
+			// Get data from provider and add to cache
 			result = (U)this._provider.get(key);
 			this.storeResult(key, result);
 			this._numMisses++;
 		}
-		else{ // cache hit
+		else{ // cache hit, Moves called element to the front of the list
 			result = holdingElement._value;
-			// Moves called element to the front of the list
+
 			// Don't do if holdingElement is the _firstElement
 			if(holdingElement._leftElement != null){
 				holdingElement._leftElement._rightElement = holdingElement._rightElement;
+				// if most recently used value is called move _lastElement back one
+				if(holdingElement._rightElement == null){
+					this._lastElement = holdingElement._leftElement;
+				}
 			}
-			else{
+			else{ // Reassign _firstElement when it is moved to back of LinkedList
 				this._firstElement = this._firstElement._rightElement;
 			}
 			// Don't do if called element is already in the back of the list
-			if(holdingElement._rightElement != null)
+			if(holdingElement._rightElement != null){
 				holdingElement._rightElement._leftElement = holdingElement._leftElement;
+			}
 			this.add(holdingElement);
 		}
 
@@ -69,9 +75,15 @@ public class LRUCache<T, U> implements Cache<T, U>{
 		final Element<T, U> e = new Element<T, U>(key, result);
 
 		if(this._storage.size() >= this._capacity){ // HashMap is full
+			// Remove least recently used value and reassign the next
+			// least recently used value
 			this._storage.remove(this._firstElement._key);
-			this._firstElement = this._firstElement._rightElement;
-			this._firstElement._leftElement = null;
+
+			if(this._capacity > 1){
+				this._firstElement = this._firstElement._rightElement;
+				this._firstElement._leftElement = null;
+			}
+
 		}
 
 		this._storage.put(key, e);
@@ -83,7 +95,7 @@ public class LRUCache<T, U> implements Cache<T, U>{
 	 * @param e elemnt to be added to the end of the LinkedList
 	 */
 	private void add(Element<T, U> e){
-		if(this._firstElement == null){ // Special size 0 case
+		if(this._storage.size() <= 1){ // Special size 0/1 case
 			this._firstElement = e;
 			this._lastElement = e;
 		}
@@ -103,20 +115,17 @@ public class LRUCache<T, U> implements Cache<T, U>{
 		return this._numMisses;
 	}
 
+	// Elements of the linked list
 	public class Element<K, E>{
 	  private Element<K, E> _leftElement;
 	  private Element<K, E> _rightElement;
 	  private E _value;
 	  private K _key;
 
-	  protected Element(K key, E value){
+	  private Element(K key, E value){
 	    this._value = value;
 			this._key = key;
 	  }
-
-		public  String toString(){
-			return this._value.toString();
-		}
 
 	}
 }
