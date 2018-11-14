@@ -2,13 +2,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Collection;
 
-public class PersonNode implements Node{
+public class GraphNode implements Node{
   private final String _name;
-  private final Map<String, MovieNode> _movies;
+  private final Map<String, GraphNode> _neighbors;
 
-  public PersonNode(String name){
+  public GraphNode(String name){
     this._name = name;
-    this._movies = new HashMap<String, MovieNode>();
+    this._neighbors = new HashMap<String, GraphNode>();
   }
 
   /**
@@ -24,15 +24,15 @@ public class PersonNode implements Node{
    * @return the Collection of all the neighbors of this Node.
    */
   public Collection<? extends Node> getNeighbors (){
-    return this._movies.values();
+    return this._neighbors.values();
   }
 
   /**
     * Adds a movie to the persons movie list
     * @param movie movie to be added to the list
     */
-  public void addMovie(MovieNode movie){
-    this._movies.put(movie.getName(), movie);
+  public void addNeighbor(GraphNode movie){
+    this._neighbors.put(movie.getName(), movie);
   }
 
   /**

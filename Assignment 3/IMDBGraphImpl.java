@@ -11,8 +11,8 @@ import java.io.File;
 import java.util.regex.Pattern;
 
 public class IMDBGraphImpl implements IMDBGraph{
-  private final Map<String, PersonNode> _actors;
-  private final Map<String, MovieNode> _movies;
+  private final Map<String, GraphNode> _actors;
+  private final Map<String, GraphNode> _movies;
   final static Pattern START = Pattern.compile("----			------");
 
   /**
@@ -21,8 +21,8 @@ public class IMDBGraphImpl implements IMDBGraph{
     */
   public IMDBGraphImpl(String actorsFilename, String actressesFilename)throws IOException {
   // Load data from the specified actorsFilename and actressesFilename ...
-  this._actors = new HashMap<String, PersonNode>();
-  this._movies = new HashMap<String, MovieNode>();
+  this._actors = new HashMap<String, GraphNode>();
+  this._movies = new HashMap<String, GraphNode>();
   this.constructGraph(actorsFilename, this.START);
   this.constructGraph(actressesFilename, this.START);
 
@@ -50,7 +50,7 @@ public class IMDBGraphImpl implements IMDBGraph{
     */
   private void parseAndSet(Scanner s){
     // Keeps track of current actor in file so that the movies can be added
-    PersonNode currentActor = null;
+    GraphNode currentActor = null;
 
     while(true){ // Loop through lines of file until the end
       try{ // catches error when scanner reaches the end of the file
@@ -66,15 +66,15 @@ public class IMDBGraphImpl implements IMDBGraph{
 
         // find a movie's name+year if one is in the line
         final String movieNameYear = findMovie(lastTabIndex, firstCloseParenIndex, line);
-        final MovieNode currentMoviesNode = (MovieNode)this.getMovie(movieNameYear);
+        final GraphNode currentMoviesNode = (GraphNode)this.getMovie(movieNameYear);
 
         // if it is a movie add it to the graph and the current actors movies
         if(!movieNameYear.equals("")){
-          MovieNode m;
+          GraphNode m;
           // if movie is not alread in the graph create its node and add it
           // to the graph
           if(currentMoviesNode ==  null ){
-            m = new MovieNode(movieNameYear);
+            m = new GraphNode(movieNameYear);
             this._movies.put(movieNameYear, m);
           }
           else{ // Movie is already in graph
@@ -84,12 +84,12 @@ public class IMDBGraphImpl implements IMDBGraph{
           // if the current movie does not already have the current actor
           // add it to the movie's neighbors
           if(!m.getNeighbors().contains(currentActor)){
-            m.addActor(currentActor);
+            m.addNeighbor(currentActor);
           }
 
           // add the movie to the current movie to the current actor's
           // neighbors
-          currentActor.addMovie(m);
+          currentActor.addNeighbor(m);
         }
 
       }
@@ -107,11 +107,11 @@ public class IMDBGraphImpl implements IMDBGraph{
     * @param currentActor the most recent actor in the file
     * @return the next actor or the existing one
     */
-  private PersonNode addActor(int firstTabIndex, String line, PersonNode currentActor){
+  private GraphNode addActor(int firstTabIndex, String line, GraphNode currentActor){
     if(firstTabIndex != 0 && firstTabIndex != -1){ // the line of the file has an actor
       final String actorName = line.substring(0, firstTabIndex);
 
-      PersonNode p =  new PersonNode(actorName);
+      GraphNode p =  new GraphNode(actorName);
       this._actors.put(actorName, p);
       return p;
     }
@@ -156,7 +156,7 @@ public class IMDBGraphImpl implements IMDBGraph{
     */
   private void cleanActors(){
     // adds all actors in the HashMap and add them to an ArrayList
-    final List<PersonNode> actors = new ArrayList<PersonNode>();
+    final List<GraphNode> actors = new ArrayList<GraphNode>();
     actors.addAll(this._actors.values());
 
     // linear search through all actors
