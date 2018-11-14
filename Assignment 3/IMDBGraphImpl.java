@@ -50,6 +50,7 @@ public class IMDBGraphImpl implements IMDBGraph{
       try{ // catches error when scanner reaches the end of the file
         final String line = s.nextLine();
 
+        // Important indexes for parsing the file
         final int firstTabIndex = line.indexOf("\t");
         final int lastTabIndex = line.lastIndexOf("\t") + 1;
         final int firstCloseParenIndex = line.indexOf(")", lastTabIndex) + 1;
@@ -57,7 +58,7 @@ public class IMDBGraphImpl implements IMDBGraph{
         // get the names of actors and add them to the graph
         currentActor = this.addActor(firstTabIndex, line, currentActor);
 
-        // find a move name+year if one is in the line
+        // find a movie's name+year if one is in the line
         final String movieNameYear = findMovie(lastTabIndex, firstCloseParenIndex, line);
         final MovieNode currentMoviesNode = (MovieNode)this.getMovie(movieNameYear);
 
@@ -65,6 +66,7 @@ public class IMDBGraphImpl implements IMDBGraph{
         if(!movieNameYear.equals("")){
           MovieNode m;
           // if movie is not alread in the graph create its node and add it
+          // to the graph
           if(currentMoviesNode ==  null ){
             m = new MovieNode(movieNameYear);
             this._movies.put(movieNameYear, m);
@@ -74,9 +76,13 @@ public class IMDBGraphImpl implements IMDBGraph{
           }
 
           // if the current movie does not already have the current actor
-          // add it to the graph
-          if(!m.getNeighbors().contains(currentActor))
+          // add it to the movie's neighbors
+          if(!m.getNeighbors().contains(currentActor)){
             m.addActor(currentActor);
+          }
+
+          // add the movie to the current movie to the current actor's
+          // neighbors
           currentActor.addMovie(m);
         }
 
@@ -96,14 +102,14 @@ public class IMDBGraphImpl implements IMDBGraph{
     * @return the next actor or the existing one
     */
   private PersonNode addActor(int firstTabIndex, String line, PersonNode currentActor){
-    if(firstTabIndex != 0 && firstTabIndex != -1){
+    if(firstTabIndex != 0 && firstTabIndex != -1){ // the line of the file has an actor
       final String actorName = line.substring(0, firstTabIndex);
 
       PersonNode p =  new PersonNode(actorName);
       this._actors.put(actorName, p);
       return p;
     }
-    else{
+    else{ // there is no actor in the line
       return currentActor;
     }
   }
@@ -117,12 +123,13 @@ public class IMDBGraphImpl implements IMDBGraph{
     * @return the movie name or empty string if the line has no movies
     */
   private static String findMovie(int lastTabIndex, int firstCloseParenIndex, String line){
+    // get the name of the movie/TV show
     final String vidString = line.substring(lastTabIndex, firstCloseParenIndex);
 
     // filter out TV shows and TV movies
-    if(vidString.indexOf("\"") == -1 && vidString.indexOf("TV") == -1)
+    if(vidString.indexOf("\"") == -1 && vidString.indexOf("(TV)") == -1)
        return vidString;
-    else
+    else // there is no movie in the line
       return "";
   }
 
@@ -142,9 +149,14 @@ public class IMDBGraphImpl implements IMDBGraph{
     * Removes the actors in the graph that have not been in any movies
     */
   private void cleanActors(){
+    // adds all actors in the HashMap and add them to an ArrayList
     final List<PersonNode> actors = new ArrayList<PersonNode>();
     actors.addAll(this._actors.values());
+
+    // linear search through all actors
     for(int i=actors.size()-1;i>=0;i--){
+      // if the actors has no neighbors(only been in TV shows/movies)
+      // remove them from the graph
       if(actors.get(i).getNeighbors().isEmpty()){
         this._actors.remove(actors.get(i).getName());
       }
