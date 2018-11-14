@@ -12,7 +12,7 @@ public class GraphNode implements Node{
   }
 
   /**
-   * Returns the name of the node (e.g., "Judy Garland").
+   * Returns the name of the node 
    * @return the name of the Node.
    */
   public String getName (){
@@ -28,15 +28,15 @@ public class GraphNode implements Node{
   }
 
   /**
-    * Adds a movie to the persons movie list
-    * @param movie movie to be added to the list
+    * Adds a node to this node's neighbors
+    * @param node node to be added to the neighbors map
     */
   public void addNeighbor(GraphNode node){
     this._neighbors.put(node.getName(), node);
   }
 
   /**
-    * returns the name of the person
+    * returns the name of the node
     */
   public String toString(){
     return this._name;
