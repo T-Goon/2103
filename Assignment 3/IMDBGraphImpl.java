@@ -1,13 +1,13 @@
 import java.util.*;
-import java.io.*;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.File;
 import java.util.regex.Pattern;
 
 public class IMDBGraphImpl implements IMDBGraph{
-  private final List<PersonNode> _actors;
-  private final List<MovieNode> _movies;
-  final static Pattern ACTORSSTART = Pattern.compile("THE ACTORS LIST");
-  final static Pattern ACCTRESSESSTART = Pattern.compile("THE ACTRESSES LIST");
-  final static int NUMOFEXTRALINESAFTERTITLE = 6;
+  private final Map<String, PersonNode> _actors;
+  private final Map<String, MovieNode> _movies;
+  final static Pattern START = Pattern.compile("----			------");
 
   /**
     * @param actorsFilename path to actors.list file
@@ -15,10 +15,13 @@ public class IMDBGraphImpl implements IMDBGraph{
     */
   public IMDBGraphImpl(String actorsFilename, String actressesFilename)throws IOException {
   // Load data from the specified actorsFilename and actressesFilename ...
-  this._actors = new ArrayList<PersonNode>();
-  this._movies = new ArrayList<MovieNode>();
-  this.constructGraph(actorsFilename, this.ACTORSSTART);
-  this.constructGraph(actressesFilename, this.ACCTRESSESSTART);
+  this._actors = new HashMap<String, PersonNode>();
+  this._movies = new HashMap<String, MovieNode>();
+  this.constructGraph(actorsFilename, this.START);
+  this.constructGraph(actressesFilename, this.START);
+
+  // remove all actors that have not been in any movies
+  this.cleanActors();
   }
 
   /**
@@ -49,7 +52,7 @@ public class IMDBGraphImpl implements IMDBGraph{
 
         final int firstTabIndex = line.indexOf("\t");
         final int lastTabIndex = line.lastIndexOf("\t") + 1;
-        final int firstCloseParenIndex = line.indexOf(")") + 1;
+        final int firstCloseParenIndex = line.indexOf(")", lastTabIndex) + 1;
 
         // get the names of actors and add them to the graph
         currentActor = this.addActor(firstTabIndex, line, currentActor);
@@ -64,7 +67,7 @@ public class IMDBGraphImpl implements IMDBGraph{
           // if movie is not alread in the graph create its node and add it
           if(currentMoviesNode ==  null ){
             m = new MovieNode(movieNameYear);
-            this._movies.add(m);
+            this._movies.put(movieNameYear, m);
           }
           else{ // Movie is already in graph
             m = currentMoviesNode;
@@ -97,7 +100,7 @@ public class IMDBGraphImpl implements IMDBGraph{
       final String actorName = line.substring(0, firstTabIndex);
 
       PersonNode p =  new PersonNode(actorName);
-      this._actors.add(p);
+      this._actors.put(actorName, p);
       return p;
     }
     else{
@@ -133,11 +136,19 @@ public class IMDBGraphImpl implements IMDBGraph{
     while(s.findInLine(start) == null){
       s.nextLine();
     }
+  }
 
-    // after header there is 6 more lines that need to be skipped
-    // until data starts
-    for(int i=0;i<IMDBGraphImpl.NUMOFEXTRALINESAFTERTITLE;i++)
-      s.nextLine();
+  /**
+    * Removes the actors in the graph that have not been in any movies
+    */
+  private void cleanActors(){
+    final List<PersonNode> actors = new ArrayList<PersonNode>();
+    actors.addAll(this._actors.values());
+    for(int i=actors.size()-1;i>=0;i--){
+      if(actors.get(i).getNeighbors().isEmpty()){
+        this._actors.remove(actors.get(i).getName());
+      }
+    }
   }
 
   /**
@@ -145,7 +156,7 @@ public class IMDBGraphImpl implements IMDBGraph{
 	 * @return a collection of all the actor and actress nodes in the graph.
 	 */
 	public Collection<? extends Node> getActors (){
-    return this._actors;
+    return this._actors.values();
   }
 
   /**
@@ -153,7 +164,7 @@ public class IMDBGraphImpl implements IMDBGraph{
    * @return a collection of all the movie nodes in the graph.
    */
   public Collection<? extends Node> getMovies (){
-    return this._movies;
+    return this._movies.values();
   }
 
   /**
@@ -163,15 +174,7 @@ public class IMDBGraphImpl implements IMDBGraph{
    *         if no such movie exists.
    */
   public Node getMovie (String name){
-    // linear search to find the movie with name:
-    // "name" ("year")
-    for(int i=0;i<this._movies.size();i++){
-      if(this._movies.get(i).getName().equals(name)){
-        return this._movies.get(i);
-      }
-    }
-    // if it is not found return null
-    return null;
+        return this._movies.get(name);
   }
 
   /**
@@ -181,13 +184,7 @@ public class IMDBGraphImpl implements IMDBGraph{
    *         if no such actor exists.
    */
   public Node getActor (String name){
-    // linear search to find the actor with given name
-    for(int i=0;i<this._actors.size();i++){
-      if(this._actors.get(i).getName().equals(name)){
-        return this._actors.get(i);
-      }
-    }
-    // if the actor is not found return null
-    return null;
+        return this._actors.get(name);
+
   }
 }

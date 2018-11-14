@@ -1,12 +1,14 @@
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Collection;
 
 public class PersonNode implements Node{
   private final String _name;
-  private final List<MovieNode> _movies;
+  private final Map<String, MovieNode> _movies;
 
   public PersonNode(String name){
     this._name = name;
-    this._movies = new ArrayList<MovieNode>();
+    this._movies = new HashMap<String, MovieNode>();
   }
 
   /**
@@ -22,7 +24,7 @@ public class PersonNode implements Node{
    * @return the Collection of all the neighbors of this Node.
    */
   public Collection<? extends Node> getNeighbors (){
-    return this._movies;
+    return this._movies.values();
   }
 
   /**
@@ -30,7 +32,7 @@ public class PersonNode implements Node{
     * @param movie movie to be added to the list
     */
   public void addMovie(MovieNode movie){
-    this._movies.add(movie);
+    this._movies.put(movie.getName(), movie);
   }
 
   /**
@@ -38,5 +40,13 @@ public class PersonNode implements Node{
     */
   public String toString(){
     return this._name;
+  }
+
+  /**
+    * Compares 2 nodes
+    * @return true if they are equal and false otherwise
+    */
+  public boolean equals(Node n){
+    return this._name.equals(n.getName());
   }
 }
