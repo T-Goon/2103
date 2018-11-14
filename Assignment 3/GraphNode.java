@@ -31,8 +31,8 @@ public class GraphNode implements Node{
     * Adds a movie to the persons movie list
     * @param movie movie to be added to the list
     */
-  public void addNeighbor(GraphNode movie){
-    this._neighbors.put(movie.getName(), movie);
+  public void addNeighbor(GraphNode node){
+    this._neighbors.put(movie.getName(), node);
   }
 
   /**
