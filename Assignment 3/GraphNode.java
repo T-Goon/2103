@@ -32,7 +32,7 @@ public class GraphNode implements Node{
     * @param movie movie to be added to the list
     */
   public void addNeighbor(GraphNode node){
-    this._neighbors.put(movie.getName(), node);
+    this._neighbors.put(node.getName(), node);
   }
 
   /**
