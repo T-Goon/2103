@@ -63,4 +63,20 @@ public class Ball {
 		circle.setTranslateX(x - (circle.getLayoutX() + BALL_RADIUS));
 		circle.setTranslateY(y - (circle.getLayoutY() + BALL_RADIUS));
 	}
+
+	/**
+		* Changes the x velocity of the ball to the pass in value.
+		* @param newVX the value vx is going to be set to.
+		*/
+	public void setVX(double newVX){
+		this.vx = newVX;
+	}
+
+	/**
+		* Changes the y velocity of the ball to the pass in value.
+		* @param newVY the value vy is going to be set to.
+		*/
+	public void setYX(double newYX){
+		this.vy = newVY;
+	}
 }

@@ -3,7 +3,6 @@ import javafx.scene.control.Label;
 import javafx.animation.AnimationTimer;
 import javafx.scene.input.MouseEvent;
 import javafx.event.*;
-import java.util.*;
 import javafx.scene.image.Image;
 import java.lang.Math;
 
@@ -113,7 +112,7 @@ public class GameImpl extends Pane implements Game {
 		getChildren().add(startLabel);
 
 		// Add event handler to start the game
-		setOnMouseClicked(new EventHandler<MouseEvent> () {
+		this.setOnMouseClicked(new EventHandler<MouseEvent> () {
 			@Override
 			public void handle (MouseEvent e) {
 				GameImpl.this.setOnMouseClicked(null);
@@ -125,6 +124,12 @@ public class GameImpl extends Pane implements Game {
 		});
 
 		// Add another event handler to steer paddle...TODO
+		this.setOnMouseMoved(new EventHandler<MouseEvent>(){
+			@Override
+			public void handle(MouseEvent t){
+				paddle.moveTo(t.getSceneX(), t.getSceneY());
+			}
+		});
 	}
 
 	/**
@@ -157,8 +162,27 @@ public class GameImpl extends Pane implements Game {
 	 * @param deltaNanoTime how much time (in nanoseconds) has transpired since the last update
 	 * @return the current game state
 	 */
-	public GameState runOneTimestep (long deltaNanoTime) {
+	public GameState runOneTimestep (long deltaNanoTime) { //TODO
 		ball.updatePosition(deltaNanoTime);
+
+		// Ball has collided with paddle
+		if(this.ball.getCircle().getBoundsInParent().intersects(this.paddle.getRectangle().getBoundsInParent())){
+			// Check if the y position of the center of the ball is above the top of the paddle
+			// if yes then the ball has collided with the top of the paddle
+			if(this.ball.getCircle().getCenterY().get() >= this.paddle.getUpperBound()){
+				this.ball.setVX();
+				this.ball.setVY();
+			}
+			// Check if the y position of the center of the ball is below the bottom of the paddle
+			// if yes then the ball has collided with the bottom of the paddle
+			else if(this.ball.getCircle().getCenterY().get() !>= this.paddle.getLowerBound()){
+				this.ball.setVX();
+				this.ball.setVY();
+			}
+		}
+
+		for()
+
 		return GameState.ACTIVE;
 	}
 }
