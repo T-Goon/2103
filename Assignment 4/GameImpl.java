@@ -48,7 +48,7 @@ public class GameImpl extends Pane implements Game {
 	/**
 		* Width/height of the edge-of-screen boundary box
 		*/
-	private final static int BOXWIDTH = 10, BOXHEIGHT = 0;
+	private final static int BOXWIDTH = 30, BOXHEIGHT = 0;
 
 	// Instance variables
 	private Ball ball;
@@ -172,33 +172,35 @@ public class GameImpl extends Pane implements Game {
 
 		// Ball has collided with paddle TODO the ball can pass through the paddle and can also get stuck in the middle
 		if(this.ball.getCircle().getBoundsInParent().intersects(this.paddle.getRectangle().getBoundsInParent())){
-			// Check if the y position of the center of the ball is above the top of the paddle
-			// if yes then the ball has collided with the top of the paddle
-			if(this.ball.getCircle().getCenterY() >= this.paddle.getUpperBound()){
-				this.ball.setVY(-this.ball.getVY());
-			}
-			// Check if the y position of the center of the ball is below the bottom of the paddle
+			// Check if the y position of the center of the ball is below the center of the paddle
 			// if yes then the ball has collided with the bottom of the paddle
-			else if(this.ball.getCircle().getCenterY() <= this.paddle.getLowerBound()){
-				this.ball.setVY(-this.ball.getVY());
+			if(this.ball.getY() >= this.paddle.getCenterY()){
+				this.ball.setVY(Math.abs(this.ball.getVY()));
+				System.out.println(1);
+			}
+			// Check if the y position of the center of the ball is above the center of the paddle
+			// if yes then the ball has collided with the top of the paddle
+			else if(this.ball.getY() <= this.paddle.getCenterY()){
+				this.ball.setVY(-Math.abs(this.ball.getVY()));
+				System.out.println(2);
 			}
 		}
 
 		// Ball is colliding with the right side of the screen
 		if(this.ball.getCircle().getBoundsInParent().intersects(this.WIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
-			this.ball.setVX(-this.ball.getVX());
+			this.ball.setVX(-Math.abs(this.ball.getVX()));
 		}
 		// Ball is colliding with the left side of the screen
 		else if(this.ball.getCircle().getBoundsInParent().intersects(-this.BOXWIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
-			this.ball.setVX(-this.ball.getVX());
+			this.ball.setVX(Math.abs(this.ball.getVX()));
 		}
 		// Ball is colliding with the top of the screen
 		else if(this.ball.getCircle().getBoundsInParent().intersects(0, -this.BOXWIDTH, this.WIDTH, this.BOXWIDTH)){
-			this.ball.setVY(-this.ball.getVY());
+			this.ball.setVY(Math.abs(this.ball.getVY()));
 		}
-
+		// Ball is colliding with the bottom of the screen
 		else if(this.ball.getCircle().getBoundsInParent().intersects(0, this.HEIGHT, this.WIDTH, this.BOXWIDTH)){
-			this.ball.setVY(-this.ball.getVY());
+			this.ball.setVY(-Math.abs(this.ball.getVY()));
 		}
 
 		// Check if the ball has collided with any oter object each tick

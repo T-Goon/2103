@@ -27,8 +27,7 @@ class Paddle {
 
 	// Instance variables
 	private Rectangle rectangle;
-	private double upperBound;
-	private double lowerBound;
+	private double centerY;
 
 	/**
 	 * @return the x coordinate of the center of the paddle.
@@ -68,16 +67,10 @@ class Paddle {
 	/**
 		* @return The y position of the top edge of the paddle.
 		*/
-	public double getUpperBound(){
-		return this.upperBound;
+	public double getCenterY(){
+		return this.centerY;
 	}
 
-	/**
-		* @return The y position of the bottom edge of the paddle.
-		*/
-	public double getLowerBound(){
-		return this.lowerBound;
-	}
 
 	/**
 	 * Moves the paddle so that its center is at (newX, newY), subject to
@@ -103,8 +96,7 @@ class Paddle {
 		rectangle.setTranslateX(newX - (rectangle.getLayoutX() + PADDLE_WIDTH/2));
 		rectangle.setTranslateY(newY - (rectangle.getLayoutY() + PADDLE_HEIGHT/2));
 
-		this.upperBound = newY + this.PADDLE_WIDTH/2;
-		this.lowerBound = newY - this.PADDLE_WIDTH/2;
+		this.centerY = newY;
 	}
 
 }

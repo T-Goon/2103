@@ -65,6 +65,13 @@ public class Ball {
 	}
 
 	/**
+		* @return the y position of the center of the ball
+		*/
+	public double getY(){
+		return this.y;
+	}
+
+	/**
 		* Changes the x velocity of the ball to the pass in value.
 		* @param newVX the value vx is going to be set to.
 		*/
