@@ -76,7 +76,21 @@ public class Ball {
 		* Changes the y velocity of the ball to the pass in value.
 		* @param newVY the value vy is going to be set to.
 		*/
-	public void setYX(double newYX){
+	public void setVY(double newVY){
 		this.vy = newVY;
+	}
+
+	/**
+		* @return the current x velocity of the ball
+		*/
+	public double getVX(){
+		return this.vx;
+	}
+
+	/**
+		* @return the current y velocity of the ball
+		*/
+	public double getVY(){
+		return this.vy;
 	}
 }

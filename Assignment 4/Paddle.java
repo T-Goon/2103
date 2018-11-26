@@ -69,14 +69,14 @@ class Paddle {
 		* @return The y position of the top edge of the paddle.
 		*/
 	public double getUpperBound(){
-		return this.centerX;
+		return this.upperBound;
 	}
 
 	/**
 		* @return The y position of the bottom edge of the paddle.
 		*/
 	public double getLowerBound(){
-		return this.centerY;
+		return this.lowerBound;
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Paddle {
 		rectangle.setTranslateY(newY - (rectangle.getLayoutY() + PADDLE_HEIGHT/2));
 
 		this.upperBound = newY + this.PADDLE_WIDTH/2;
-		this.lowerBound = newY - this.PADDLE_WIDTH/2
+		this.lowerBound = newY - this.PADDLE_WIDTH/2;
 	}
 
 }
