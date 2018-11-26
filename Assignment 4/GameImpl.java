@@ -170,7 +170,7 @@ public class GameImpl extends Pane implements Game {
 	public GameState runOneTimestep (long deltaNanoTime) { //TODO
 		ball.updatePosition(deltaNanoTime);
 
-		// Ball has collided with paddle TODO the ball can pass through the paddle and can also get stuck in the middle
+		// Ball has collided with paddle TODO the ball can pass through the paddle
 		if(this.ball.getCircle().getBoundsInParent().intersects(this.paddle.getRectangle().getBoundsInParent())){
 			// Check if the y position of the center of the ball is below the center of the paddle
 			// if yes then the ball has collided with the bottom of the paddle
