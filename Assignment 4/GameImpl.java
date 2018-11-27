@@ -5,6 +5,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.event.*;
 import javafx.scene.image.Image;
 import java.lang.Math;
+import java.util.List;
+import java.util.ArrayList;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.AudioInputStream;
 
 public class GameImpl extends Pane implements Game {
 	/**
@@ -50,9 +55,17 @@ public class GameImpl extends Pane implements Game {
 		*/
 	private final static int BOXWIDTH = 30, BOXHEIGHT = 0;
 
+	/**
+		* The number of times the ball must hit the bottom of the screen before the
+		* player loses the game.
+		*/
+	private final static int LOSECONDITION = 5;
+
 	// Instance variables
 	private Ball ball;
 	private Paddle paddle;
+	private final List<Animal> animals =  new ArrayList<Animal>();
+	private int loseCounter = 0;
 
 	/**
 	 * Constructs a new GameImpl.
@@ -72,23 +85,30 @@ public class GameImpl extends Pane implements Game {
 	}
 
 	private void restartGame (GameState state) {
+		this.animals.clear();
 		getChildren().clear();  // remove all components from the game
+		this.loseCounter = 0;
 
 		// Create and add ball
 		ball = new Ball();
 		getChildren().add(ball.getCircle());  // Add the ball to the game board
 
-		// Create and add animals ...TODO
+		// Create and add animals ...
 		double xCord = GameImpl.XYINITIAL;
 		double yCord = GameImpl.XYINITIAL;
 		for(int i=0;i<GameImpl.NUMOFANIMALS;i++){
+			final int rand = (int)(Math.random() * GameImpl.FILENAMES.length);
 
+			// Create a new animal with a random image of goat, horse, or duck
 			final Animal a = new Animal(new Image(getClass().getResourceAsStream(
-			GameImpl.FILENAMES[(int)(Math.random() * GameImpl.FILENAMES.length)])),
-			xCord, yCord);
+			GameImpl.FILENAMES[rand])),
+			xCord, yCord, GameImpl.FILENAMES[rand]);
 
+			// adds new animal to scene and animal list
 			getChildren().add(a.getAnimal());
+			this.animals.add(a);
 
+			// increment positions so that animals are placed correctly
 			if(xCord == GameImpl.BOUNDARY){
 				xCord = GameImpl.XYINITIAL;
 				yCord += GameImpl.YSPACE;
@@ -128,7 +148,7 @@ public class GameImpl extends Pane implements Game {
 			}
 		});
 
-		// Add another event handler to steer paddle...TODO
+		// Add another event handler to steer paddle...
 		this.setOnMouseMoved(new EventHandler<MouseEvent>(){
 			@Override
 			public void handle(MouseEvent t){
@@ -167,45 +187,125 @@ public class GameImpl extends Pane implements Game {
 	 * @param deltaNanoTime how much time (in nanoseconds) has transpired since the last update
 	 * @return the current game state
 	 */
-	public GameState runOneTimestep (long deltaNanoTime) { //TODO
+	public GameState runOneTimestep (long deltaNanoTime) {
+
 		ball.updatePosition(deltaNanoTime);
 
-		// Ball has collided with paddle TODO the ball can pass through the paddle
+		// Ball has collided with paddle
 		if(this.ball.getCircle().getBoundsInParent().intersects(this.paddle.getRectangle().getBoundsInParent())){
 			// Check if the y position of the center of the ball is below the center of the paddle
 			// if yes then the ball has collided with the bottom of the paddle
 			if(this.ball.getY() >= this.paddle.getCenterY()){
 				this.ball.setVY(Math.abs(this.ball.getVY()));
-				System.out.println(1);
 			}
 			// Check if the y position of the center of the ball is above the center of the paddle
 			// if yes then the ball has collided with the top of the paddle
 			else if(this.ball.getY() <= this.paddle.getCenterY()){
 				this.ball.setVY(-Math.abs(this.ball.getVY()));
-				System.out.println(2);
+			}
+			this.playSound("");
+		}
+
+		if(!this.collideWithWall())
+			return GameState.LOST;
+
+		Animal toRemove = null;
+		// Check if the ball has collided with any of the animals each tick
+		for(Animal a : this.animals){
+			// The ball has collided with an animal
+			if(this.ball.getCircle().getBoundsInParent().intersects(a.getAnimal().getBoundsInParent())){
+				this.ball.collide(a);
+				this.ball.increaseSpeed();
+				toRemove = a;
+				this.getChildren().remove(a.getAnimal());
+				this.playSound(toRemove.getName());
 			}
 		}
 
-		// Ball is colliding with the right side of the screen
-		if(this.ball.getCircle().getBoundsInParent().intersects(this.WIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
-			this.ball.setVX(-Math.abs(this.ball.getVX()));
-		}
-		// Ball is colliding with the left side of the screen
-		else if(this.ball.getCircle().getBoundsInParent().intersects(-this.BOXWIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
-			this.ball.setVX(Math.abs(this.ball.getVX()));
-		}
-		// Ball is colliding with the top of the screen
-		else if(this.ball.getCircle().getBoundsInParent().intersects(0, -this.BOXWIDTH, this.WIDTH, this.BOXWIDTH)){
-			this.ball.setVY(Math.abs(this.ball.getVY()));
-		}
-		// Ball is colliding with the bottom of the screen
-		else if(this.ball.getCircle().getBoundsInParent().intersects(0, this.HEIGHT, this.WIDTH, this.BOXWIDTH)){
-			this.ball.setVY(-Math.abs(this.ball.getVY()));
-		}
+		// remove the animial that the ball has collided with
+		this.animals.remove(toRemove);
 
-		// Check if the ball has collided with any oter object each tick
-		//for()
+		// all the animals are gone, game is won
+		if(this.animals.isEmpty()){
+			this.playSound("win");
+			return GameState.WON;
+		}
 
 		return GameState.ACTIVE;
 	}
+
+	/**
+		* Play the a sound based off of what is passed in as name.
+		* @param name keyword for what sound is going to be played
+		*/
+		public static synchronized void playSound(final String name) {
+		  new Thread(new Runnable() {
+		    public void run() {
+		      try {
+		        Clip clip = AudioSystem.getClip();
+
+						// Select audio file based off of name
+						AudioInputStream inputStream;
+						if(name.equals("goat.jpg"))
+		        	inputStream = AudioSystem.getAudioInputStream(
+		          	getClass().getResourceAsStream("Goat-noise.wav"));
+						else if(name.equals("horse.jpg"))
+							inputStream = AudioSystem.getAudioInputStream(
+								getClass().getResourceAsStream("whinny.wav"));
+						else if(name.equals("duck.jpg"))
+							inputStream = AudioSystem.getAudioInputStream(
+								getClass().getResourceAsStream("quack.wav"));
+						else if(name.equals("win"))
+							inputStream = AudioSystem.getAudioInputStream(
+								getClass().getResourceAsStream("chaching.wav"));
+						else if(name.equals("lose"))
+							inputStream = AudioSystem.getAudioInputStream(
+								getClass().getResourceAsStream("shatter.wav"));
+						else
+							inputStream = AudioSystem.getAudioInputStream(
+								getClass().getResourceAsStream("boing.wav"));
+
+		        clip.open(inputStream);
+		        clip.start();
+		      } catch (Exception e) {
+		        System.err.println(e.getMessage());
+		      }
+		    }
+		  }).start();
+		}
+
+		/**
+			* Handle the collision of the ball with the sides of the game board.
+			* @return false if the game has ended and true otherwise
+			*/
+		public boolean collideWithWall(){
+			// Ball is colliding with the right side of the screen
+			if(this.ball.getCircle().getBoundsInParent().intersects(this.WIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
+				this.ball.setVX(-Math.abs(this.ball.getVX()));
+				this.playSound("");
+			}
+			// Ball is colliding with the left side of the screen
+			else if(this.ball.getCircle().getBoundsInParent().intersects(-this.BOXWIDTH, 0, this.BOXWIDTH, this.HEIGHT)){
+				this.ball.setVX(Math.abs(this.ball.getVX()));
+				this.playSound("");
+			}
+			// Ball is colliding with the top of the screen
+			else if(this.ball.getCircle().getBoundsInParent().intersects(0, -this.BOXWIDTH, this.WIDTH, this.BOXWIDTH)){
+				this.ball.setVY(Math.abs(this.ball.getVY()));
+				this.playSound("");
+			}
+			// Ball is colliding with the bottom of the screen
+			else if(this.ball.getCircle().getBoundsInParent().intersects(0, this.HEIGHT, this.WIDTH, this.BOXWIDTH)){
+				this.ball.setVY(-Math.abs(this.ball.getVY()));
+				this.playSound("");
+				loseCounter++;
+				// Lost the game
+				if(loseCounter == this.LOSECONDITION){
+					this.playSound("lose");
+					return false;
+				}
+			}
+
+			return true;
+		}
 }
