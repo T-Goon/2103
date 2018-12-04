@@ -46,24 +46,86 @@ public class SimpleExpressionParser implements ExpressionParser {
 	}
 
 	/**
-		* @return
+		* Checks if the string follows the E procution rules and returns a parsed
+		* expression tree of the string.
+		* @param str the string to be parsed
+		* @return the pased expression tree of the string if it follows the procution
+		* rule and null otherwise
 		*/
 	private Expression parseE(String str){
+		Expression aExpression = SimpleExpressionParser.parseA(str);
+		if(aExpression != null)
+			return aExpression;
 
+		Expression xExpression = SimpleExpressionParser.parseX(str);
+		if(xExpression != null)
+			return xExpression;
 	}
 
-	private Expression parseA(String str){
-
+	/**
+		* Checks if the string follows the A procution rule and returns a parsed expression
+		* tree of the string.
+		* @param str the string to be parsed
+		* @return the parsed expression tree if it follows the production rules and null
+		* otherwise
+		*/
+	private static Expression parseA(String str){
+		SimpleExpressionParser.parseMAHelper(str, "+", SimpleExpressionParser :: parseA,
+		SimpleExpressionParser :: parseM, SimpleExpressionParser :: parseM);
 	}
 
-	private Expression parseM(String str){
+	/**
+		* Checks if the string follows the M procution rule and returns a parsed expression
+		* tree of the string.
+		* @param str the string to be parsed
+		* @return the parsed expression tree if it follows the production rules and null
+		* otherwise
+		*/
+	private static Expression parseM(String str){
+		SimpleExpressionParser.parseMAHelper(str, "*", SimpleExpressionParser :: parseM,
+		SimpleExpressionParser :: parseM, SimpleExpressionParser :: parseX);
+	}
+
+	/**
+		* Checks if the string follows the M or A production rule and returns a parsed
+		* expression tree of the string.
+		* @param str the string to be parsed
+		* @param op the operator that the string's parsing is going to be based on
+		* @param f1 the function that is used to check the expression before the op
+		* @param f2 the function that is used to check the expression afther the op
+		* @param f3 the function that is used to check the M/X cases of the procution rule
+		* @return an expression tree of the string if it follows the production rule
+		* and null otherwise
+		*/
+	private static Expression parseMAHelper(String str, char op,
+	Function<String, Expression> f1, Function<String, Expression> f2,
+	Function<String, Expression> f3){
+		for (int i = 1; i < str.length() - 1; i++) {
+
+			if (str.charAt(i) == op){
+				final Expression beforeOp = f1(str.substring(0, i));
+				final Expression afterOp = f2(str.substring(i+1));
+
+				if(beforeOp != null && afterOp != null) {
+					final OpperationExpression exp = new OpperationExpression(op, null);
+					exp.addSubexpression(beforeOp);
+					exp.addSubexpression(afterOp;
+					return exp;
+				}
+
+			}
+
+		}
+
+		return f3(str);
 
 	}
 
 	/**
-		* Checks if the string starts and ends with a open/close paren.
+		* Checks if the string follows the X procution rule and returns a parsed
+		* expression tree of the string.
 		* @param str the string that is being parsed
-		* @return an expression if the string follows the L procution rule and null
+		* @return an expression tree of the string follows the L procution rule and null
 		* otherwise
 		*/
 	private static Expression parseX(String str){ // iffy on the (1 + 1) + (1 + 1) case should be fine though
@@ -87,16 +149,19 @@ public class SimpleExpressionParser implements ExpressionParser {
 	}
 
 	/**
-		* Checks if the string is of size 1 and is either a digit 0-9 or a letter a-z
+		* Checks if the string follows the L procution rule and returns a parsed
+		* expression tree of the string.
 		* @param str the string that is being parsed
-		* @return an expression if the string follows the L procution rule and null
+		* @return an expression tree of the string follows the L procution rule and null
 		* otherwise
 		*/
 	private static Expression parseL(String str){
+		// checks if string is size 1 and a digit/letter
 		if(str.length() == 1 && Character.isLetterOrDigit(str.charAt(0))){
 				return new LiteralExpression(str, null);
 
 		}
+
 		return null;
 	}
 
