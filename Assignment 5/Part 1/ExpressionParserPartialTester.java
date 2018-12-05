@@ -129,6 +129,31 @@ public class ExpressionParserPartialTester {
 		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 
+	@Test
+	/**
+	 * Verifies that a specific expression is parsed into the correct parse tree.
+	 */
+	public void testDeepCopy1 () throws ExpressionParseException {
+		final String expressionStr = "1+1";
+		final Expression copy = _parser.parse(expressionStr, false).deepCopy();
+
+		assertNotEquals(copy, _parser.parse(expressionStr, false));
+	}
+
+	@Test
+	/**
+	 * Verifies that a specific expression is parsed into the correct parse tree.
+	 */
+	public void testDeepCopy2 () throws ExpressionParseException {
+		final String expressionStr = "1+1+1";
+		final String sub = "1";
+		final OpperationExpression copy = (OpperationExpression)_parser.parse(expressionStr, false).deepCopy();
+		final Expression subexp = _parser.parse(sub, false);
+		copy.addSubexpression(subexp);
+
+		assertNotEquals(copy.convertToString(0), _parser.parse(expressionStr, false).convertToString(0));
+	}
+
 	@Test(expected = ExpressionParseException.class)
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.

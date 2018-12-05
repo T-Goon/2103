@@ -75,12 +75,12 @@ public class SimpleExpressionParser implements ExpressionParser {
 		*/
 	private static Expression parseE(String str){
 		// Checks if string follows the A production rule
-		Expression aExpression = SimpleExpressionParser.parseA(str);
+		final Expression aExpression = SimpleExpressionParser.parseA(str);
 		if(aExpression != null)
 			return aExpression;
 
 		// Checks if string follows the X production rule
-		Expression xExpression = SimpleExpressionParser.parseX(str);
+		final Expression xExpression = SimpleExpressionParser.parseX(str);
 		if(xExpression != null)
 			return xExpression;
 

@@ -1,6 +1,6 @@
 
 public class LiteralExpression implements Expression{
-  private String _value;
+  private final String _value;
   private CompoundExpression _parent;
 
   public LiteralExpression(String value){
@@ -31,7 +31,7 @@ public class LiteralExpression implements Expression{
    * @return the deep copy
    */
   public Expression deepCopy (){
-    LiteralExpression copy = new LiteralExpression(this._value);
+    final LiteralExpression copy = new LiteralExpression(this._value);
     copy.setParent(this._parent);
     return copy;
   }

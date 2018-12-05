@@ -3,9 +3,9 @@ import java.util.ArrayList;
 
 @SuppressWarnings("unchecked")
 public class OpperationExpression implements CompoundExpression{
-  private String _opperation;
+  private final String _opperation;
   private CompoundExpression _parent;
-  private List<Expression> _children;
+  private final List<Expression> _children;
 
   public OpperationExpression(String opperation){
     this._opperation = opperation;
