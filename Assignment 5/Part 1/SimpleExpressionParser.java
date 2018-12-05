@@ -1,4 +1,9 @@
 import java.lang.Character;
+import java.util.function.Function;
+import java.util.List;
+import java.util.ArrayList;
+import java.lang.Integer;
+import java.lang.NumberFormatException;
 
 /**
  * Starter code to implement an ExpressionParser. Your parser methods should use the following grammar:
@@ -9,6 +14,14 @@ import java.lang.Character;
  * L := [0-9]+ | [a-z]
  */
 public class SimpleExpressionParser implements ExpressionParser {
+	private static final List<Function<String, Expression>> LISTOFPARSERS = new ArrayList<Function<String, Expression>>()
+																																	{{add(SimpleExpressionParser::parseE);
+																																		add(SimpleExpressionParser :: parseX);
+																																		add(SimpleExpressionParser :: parseA);
+																																		add(SimpleExpressionParser :: parseM);
+																																		add(SimpleExpressionParser :: parseL);}};
+	//private static final List<Function<String, Expression>> LISTOFPARSERS = new ArrayList<Function<String, Expression>>(){SimpleExpressionParser::parseX};
+
 	/**
 	 * Attempts to create an expression tree -- flattened as much as possible -- from the specified String.
          * Throws a ExpressionParseException if the specified string cannot be parsed.
@@ -32,14 +45,22 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return expression;
 	}
 
+	/**
+		* Parse the string into a parse tree if it follows the procution rules.
+		* @param str the string to be parsed
+		* @return the expression tree if it follows the production rules and
+		* null otherwise
+		*/
 	protected Expression parseExpression (String str) {
 		Expression expression;
 
-		// TODO implement me
-
-		if(str.indexOf(0)equals("(")){
-			expression =  new OpperationExpression("()", null);
-			this.parseX(str.substring(1,str.length() - 1), expression);
+		// Tests if the string follows any of the production rules
+		for(Function<String, Expression> f : SimpleExpressionParser.LISTOFPARSERS){
+			expression = f.apply(str);
+			// if string does follow a production rule then return the parsed tree
+			if(expression != null){
+				return expression;
+			}
 		}
 
 		return null;
@@ -52,14 +73,18 @@ public class SimpleExpressionParser implements ExpressionParser {
 		* @return the pased expression tree of the string if it follows the procution
 		* rule and null otherwise
 		*/
-	private Expression parseE(String str){
+	private static Expression parseE(String str){
+		// Checks if string follows the A production rule
 		Expression aExpression = SimpleExpressionParser.parseA(str);
 		if(aExpression != null)
 			return aExpression;
 
+		// Checks if string follows the X production rule
 		Expression xExpression = SimpleExpressionParser.parseX(str);
 		if(xExpression != null)
 			return xExpression;
+
+		return null;
 	}
 
 	/**
@@ -70,7 +95,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 		* otherwise
 		*/
 	private static Expression parseA(String str){
-		SimpleExpressionParser.parseMAHelper(str, "+", SimpleExpressionParser :: parseA,
+		return SimpleExpressionParser.parseMAHelper(str, '+', SimpleExpressionParser :: parseA,
 		SimpleExpressionParser :: parseM, SimpleExpressionParser :: parseM);
 	}
 
@@ -82,7 +107,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 		* otherwise
 		*/
 	private static Expression parseM(String str){
-		SimpleExpressionParser.parseMAHelper(str, "*", SimpleExpressionParser :: parseM,
+		return SimpleExpressionParser.parseMAHelper(str, '*', SimpleExpressionParser :: parseM,
 		SimpleExpressionParser :: parseM, SimpleExpressionParser :: parseX);
 	}
 
@@ -100,16 +125,20 @@ public class SimpleExpressionParser implements ExpressionParser {
 	private static Expression parseMAHelper(String str, char op,
 	Function<String, Expression> f1, Function<String, Expression> f2,
 	Function<String, Expression> f3){
+		// Iterates through the string and looks for the passed in opperator
 		for (int i = 1; i < str.length() - 1; i++) {
 
 			if (str.charAt(i) == op){
-				final Expression beforeOp = f1(str.substring(0, i));
-				final Expression afterOp = f2(str.substring(i+1));
+				// If it has found the opperator then check if the strings to the left
+				// and right of the opperator follow the passed in production rules
+				final Expression beforeOp = f1.apply(str.substring(0, i));
+				final Expression afterOp = f2.apply(str.substring(i+1));
 
 				if(beforeOp != null && afterOp != null) {
-					final OpperationExpression exp = new OpperationExpression(op, null);
+					final OpperationExpression exp = new OpperationExpression(op+"");
 					exp.addSubexpression(beforeOp);
-					exp.addSubexpression(afterOp;
+					exp.addSubexpression(afterOp);
+
 					return exp;
 				}
 
@@ -117,7 +146,8 @@ public class SimpleExpressionParser implements ExpressionParser {
 
 		}
 
-		return f3(str);
+		// Check if the string follows the third passed in production rule
+		return f3.apply(str);
 
 	}
 
@@ -128,10 +158,10 @@ public class SimpleExpressionParser implements ExpressionParser {
 		* @return an expression tree of the string follows the L procution rule and null
 		* otherwise
 		*/
-	private static Expression parseX(String str){ // iffy on the (1 + 1) + (1 + 1) case should be fine though
-		// Check if string is encased in parens.
-		if(str.charAt(0).equals("(") && str.charAt(str.length()).equals(")")){
-			final OpperationExpression exp = new OpperationExpression("()", null);
+	private static Expression parseX(String str){
+		// Check if string is encased in parens. and that it is greater than size 1
+		if(str.length() > 0 && str.charAt(0) == '(' && str.charAt(str.length()-1) == ')'){
+			final OpperationExpression exp = new OpperationExpression("()");
 			// Check if inside the parens is a valid E
 			final Expression eExpresssion = SimpleExpressionParser.parseE(str.substring(1, str.length()-1));
 
@@ -156,10 +186,20 @@ public class SimpleExpressionParser implements ExpressionParser {
 		* otherwise
 		*/
 	private static Expression parseL(String str){
-		// checks if string is size 1 and a digit/letter
-		if(str.length() == 1 && Character.isLetterOrDigit(str.charAt(0))){
-				return new LiteralExpression(str, null);
+		// checks if string is size 1 and a letter
+		if(str.length() == 1 && Character.isLetter(str.charAt(0))){
+				return new LiteralExpression(str);
 
+		}
+
+		// Checks if the string is a positive integer
+		try{
+			if(Integer.parseInt(str) >= 0 && str.charAt(0) != '+' && str.charAt(0) != '-'){
+				return new LiteralExpression(str);
+			}
+		}
+		catch(NumberFormatException e){
+			return null;
 		}
 
 		return null;

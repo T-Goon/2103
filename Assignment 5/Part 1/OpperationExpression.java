@@ -7,13 +7,7 @@ public class OpperationExpression implements CompoundExpression{
   private CompoundExpression _parent;
   private List<Expression> _children;
 
-  public OpperationExpression(String opperation, CompoundExpression parent, List<Expression> children){
-    this._opperation = opperation;
-    this._parent = parent;
-    this._children = children;
-  }
-
-  public OpperationExpression(String opperation, Expression parent){
+  public OpperationExpression(String opperation){
     this._opperation = opperation;
     this._parent = _parent;
     this._children = new ArrayList<Expression>();
@@ -50,7 +44,8 @@ public class OpperationExpression implements CompoundExpression{
    * @return the deep copy
    */
   public Expression deepCopy (){
-    final OpperationExpression copy = new OpperationExpression(this._opperation, this._parent);
+    final OpperationExpression copy = new OpperationExpression(this._opperation);
+    copy.setParent(this._parent);
 
     // Copy expression's subexpressions
     for(Expression exp : this._children){
@@ -78,28 +73,30 @@ public class OpperationExpression implements CompoundExpression{
       otherOpp = "+";
     }
 
-    // A list of child node that are of the same opperation a this expression
-    List<OpperationExpression> toRemove = new ArrayList<OpperationExpression>();
-    List<OpperationExpression> toFlatten = new ArrayList<OpperationExpression>();
+    // A list of child nodes that are of the same opperation a this expression
+    final List<OpperationExpression> toRemove = new ArrayList<OpperationExpression>();
+    // Index of where the toRemove child nodes where in the original childs list
+    final List<Integer> toRemoveIndexes = new ArrayList<Integer>();
 
     // Find subexpressions that have the same opperation as this expression and
     // add it to the list toRemove
-    for(Expression exp : this._children){
-      if(!exp.toString().equals("()") && this._opperation.equals(exp.toString())){
-        toRemove.add((OpperationExpression)exp);
+    for(int i=0;i<this._children.size();i++){
+      if(!this._children.get(i).toString().equals("()") && this._opperation.equals(this._children.get(i).toString())){
+        toRemove.add((OpperationExpression)this._children.get(i));
+        toRemoveIndexes.add(i);
       }
       // If the child is a paran expression or an expression of the other opperation type
       // flatten it.
-      else if(exp.toString().equals(otherOpp) || exp.toString().equals("()")){
-        exp.flatten();
+      else if(this._children.get(i).toString().equals(otherOpp) || this._children.get(i).toString().equals("()")){
+        this._children.get(i).flatten();
       }
 
     }
 
     // Add the children of the expressions that have the same opperation as this one
     // to this expression's children
-    for(OpperationExpression exp : toRemove){
-      this._children.addAll(exp.getChildren());
+    for(int i=0;i<toRemove.size();i++){
+      this._children.addAll(toRemoveIndexes.get(i), toRemove.get(i).getChildren());
     }
 
     // Remove the subexpressions that have the same opperation as this one
@@ -124,11 +121,10 @@ public class OpperationExpression implements CompoundExpression{
     Expression.indent(stringBuilder, indentLevel);
 
     stringBuilder.append(this._opperation);
-
-    System.out.println(stringBuilder);
+    stringBuilder.append("\n");
 
     for(Expression exp : this._children){
-      exp.convertToString(new StringBuilder(), indentLevel + 1);
+      exp.convertToString(stringBuilder, indentLevel + 1);
     }
   }
 

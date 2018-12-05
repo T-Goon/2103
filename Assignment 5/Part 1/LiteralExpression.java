@@ -3,9 +3,9 @@ public class LiteralExpression implements Expression{
   private String _value;
   private CompoundExpression _parent;
 
-  public LiteralExpression(String value, CompoundExpression parent){
+  public LiteralExpression(String value){
     this._value = value;
-    this._parent = parent;
+    this._parent = null;
   }
 
   /**
@@ -31,7 +31,9 @@ public class LiteralExpression implements Expression{
    * @return the deep copy
    */
   public Expression deepCopy (){
-    return new LiteralExpression(this._value, this._parent);
+    LiteralExpression copy = new LiteralExpression(this._value);
+    copy.setParent(this._parent);
+    return copy;
   }
 
   /**
@@ -55,8 +57,7 @@ public class LiteralExpression implements Expression{
     Expression.indent(stringBuilder, indentLevel);
 
     stringBuilder.append(this._value);
-
-    System.out.println(stringBuilder);
+    stringBuilder.append("\n");
   }
 
   /**
