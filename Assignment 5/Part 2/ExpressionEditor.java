@@ -26,16 +26,28 @@ public class ExpressionEditor extends Application {
 	 * Mouse event handler for the entire pane that constitutes the ExpressionEditor
 	 */
 	private static class MouseEventHandler implements EventHandler<MouseEvent> {//TODO
+		private Pane p;
+		private CompoundExpression root;
+		
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
+			p = pane_;
+			root = rootExpression_;
 		}
 
 		public void handle (MouseEvent event) {
+			final double x = event.getSceneX();
+			final double y = event.getSceneY();
+
 			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
-
-			} else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-
-			} else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
-
+				for(Node n : p.getChildren()){
+					System.out.println(n);
+				}
+			}
+			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
+				System.out.println(2);
+			}
+			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
+				System.out.println(1);
 			}
 		}
 	}

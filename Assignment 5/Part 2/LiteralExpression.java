@@ -79,7 +79,6 @@ public class LiteralExpression implements Expression{
    * @return the JavaFX node associated with this expression.
    */
   public Node getNode (){
-    System.out.println(2);
     return new Label(this._value);
   }
 

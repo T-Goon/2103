@@ -172,15 +172,32 @@ public class OpperationExpression implements CompoundExpression{
    * @return the JavaFX node associated with this expression.
    */
   public Node getNode (){//TODO make a case for parens
+    // Only fill the Hbox if it is not filled yet
+    if(this._box.getChildren().isEmpty()){
+      if(!this._opperation.equals("()")){
+        this.getChildrenNodes();
+      }
+      else{ // Make sure the children of the () expression is inside it.
+        this._box.getChildren().add(new Label("("));
+        this.getChildrenNodes();
+        this._box.getChildren().add(new Label(")"));
+      }
+    }
+    return this._box;
+  }
 
-    if(this._box.getChildren().isEmpty())
-      for(int i=0;i<this._children.size();i++){
+  /**
+    * Add the javafx nodes to this expressions HBox.
+    */
+  private void getChildrenNodes(){
+    for(int i=0;i<this._children.size();i++){
         this._box.getChildren().add(this._children.get(i).getNode());
+        // Make sure that a +/* symbol does not get added to the end of the HBox
+        // ex: 1+1+
         if(i < this._children.size()-1)
           this._box.getChildren().add(new Label(this._opperation));
-      }
 
-    return this._box;
+    }
   }
 
 }
