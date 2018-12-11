@@ -11,7 +11,7 @@ public class LiteralExpression implements Expression{
   public LiteralExpression(String value){
     this._value = value;
     this._parent = null;
-    this._box = new HBox(new Label(this._value));
+    this._box = new Label(this._value);
   }
 
   /**
@@ -79,7 +79,7 @@ public class LiteralExpression implements Expression{
    * @return the JavaFX node associated with this expression.
    */
   public Node getNode (){
-    return new Label(this._value);
+    return this._box;
   }
 
 }

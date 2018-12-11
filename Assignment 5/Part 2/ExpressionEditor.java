@@ -26,12 +26,15 @@ public class ExpressionEditor extends Application {
 	 * Mouse event handler for the entire pane that constitutes the ExpressionEditor
 	 */
 	private static class MouseEventHandler implements EventHandler<MouseEvent> {//TODO
-		private Pane p;
-		private CompoundExpression root;
-		
+		static private Pane _p;
+		static private CompoundExpression _root;
+		static Node _focus;
+		static boolean _hasBeenDragged = false;
+
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
-			p = pane_;
-			root = rootExpression_;
+			MouseEventHandler._p = pane_;
+			MouseEventHandler._root = rootExpression_;
+			MouseEventHandler._focus = null;
 		}
 
 		public void handle (MouseEvent event) {
@@ -39,17 +42,39 @@ public class ExpressionEditor extends Application {
 			final double y = event.getSceneY();
 
 			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
-				for(Node n : p.getChildren()){
-					System.out.println(n);
+
+			}
+			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
+				// The mouse has not been dragged so this is a click
+				if(!MouseEventHandler._hasBeenDragged){
+					MouseEventHandler._focus =  MouseEventHandler.findFocus(x, y);
+					System.out.println(MouseEventHandler._focus);
+				}
+				// The mouse was previously dragged so this is a drag and release
+				else{
+					System.out.println(0);
+					MouseEventHandler._hasBeenDragged = false;
 				}
 			}
 			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
 				System.out.println(2);
+				MouseEventHandler._hasBeenDragged = true;
 			}
-			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
-				System.out.println(1);
-			}
+
 		}
+
+		private static Node findFocus(double x, double y){//TODO
+			// Check if there is no focus and if the position of the mouse is in the node's bounds
+			if(MouseEventHandler._focus == null &&
+			MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).contains(x, y)){
+				return MouseEventHandler._root.getNode();
+			}
+			else{
+				return null;
+			}
+
+		}
+
 	}
 
 	/**
@@ -90,7 +115,7 @@ public class ExpressionEditor extends Application {
 					expressionPane.getChildren().clear();
 					expressionPane.getChildren().add(expression.getNode());
 					expression.getNode().setLayoutX(WINDOW_WIDTH/4);
-					expression.getNode().setLayoutY(WINDOW_HEIGHT/2);
+					expression.getNode().setLayoutY(WINDOW_HEIGHT/3);
 
 					// If the parsed expression is a CompoundExpression, then register some callbacks
 					if (expression instanceof CompoundExpression) {
