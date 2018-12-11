@@ -47,7 +47,9 @@ public class ExpressionEditor extends Application {
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				// The mouse has not been dragged so this is a click
 				if(!MouseEventHandler._hasBeenDragged){
+					MouseEventHandler.setBorder("");
 					MouseEventHandler._focus =  MouseEventHandler.findFocus(x, y);
+					MouseEventHandler.setBorder("-fx-border-color: red;");
 					System.out.println(MouseEventHandler._focus);
 				}
 				// The mouse was previously dragged so this is a drag and release
@@ -63,15 +65,53 @@ public class ExpressionEditor extends Application {
 
 		}
 
-		private static Node findFocus(double x, double y){//TODO
-			// Check if there is no focus and if the position of the mouse is in the node's bounds
+		/**
+			* Find the focus in the expression based on where the user clicked.
+			* @param x the x position of where the user clicked.
+			* @param y the y position of where the user clicked.
+			*/
+		private static Node findFocus(double x, double y){
+			// Check if there is no focus and if the position of the mouse is in the expression's bounds
 			if(MouseEventHandler._focus == null &&
 			MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).contains(x, y)){
 				return MouseEventHandler._root.getNode();
 			}
-			else{
-				return null;
+
+			Pane focus = null;
+			// Make sure the current focus is a pane so that it will have children
+			if(MouseEventHandler._focus instanceof Pane){
+				focus = (Pane)MouseEventHandler._focus;
 			}
+			// If a focus if a pane check if the user clicked on of its children
+			if(focus != null){
+				for(Node n : focus.getChildren()){
+					if(n.localToScene(n.getBoundsInLocal()).contains(x, y)){
+						// If you click on a label make sure that it is not a +/*/(/) label
+						if(!(n instanceof Label)){
+								return n;
+						}
+						else{
+							final Label l = (Label)n;
+							if(!(l.getText().equals("+") || l.getText().equals("*") ||
+							l.getText().equals(")") || l.getText().equals("("))){
+								return n;
+							}
+						}
+					}
+				}
+			}
+
+			return null;
+
+		}
+
+		/**
+			* Change the style value of the focus if it is not null.
+			* @param css The string representing the css style
+			*/
+		private static void setBorder(String css){
+			if(MouseEventHandler._focus != null)
+				MouseEventHandler._focus.setStyle(css);
 
 		}
 
