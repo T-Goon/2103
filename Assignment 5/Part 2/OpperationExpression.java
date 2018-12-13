@@ -139,7 +139,7 @@ public class OpperationExpression implements CompoundExpression{
   /**
     * @return this expression's subexpressions
     */
-  public List getChildren(){
+  public List<Expression> getChildren(){
     return this._children;
   }
 
@@ -171,7 +171,7 @@ public class OpperationExpression implements CompoundExpression{
    * Returns the JavaFX node associated with this expression.
    * @return the JavaFX node associated with this expression.
    */
-  public Node getNode (){//TODO make a case for parens
+  public Node getNode (){
     // Only fill the Hbox if it is not filled yet
     if(this._box.getChildren().isEmpty()){
       if(!this._opperation.equals("()")){
@@ -198,6 +198,60 @@ public class OpperationExpression implements CompoundExpression{
           this._box.getChildren().add(new Label(this._opperation));
 
     }
+  }
+
+  /**
+    * Emptys all of the nodes children.
+    */
+  public void clearNode(){
+    for(int i=0;i<this._children.size();i++)
+      if(this._children.get(i) instanceof OpperationExpression){
+        final OpperationExpression o = (OpperationExpression)this._children.get(i);
+        o.clearNode();
+      }
+    this._box.getChildren().clear();
+  }
+
+  /**
+		* Checks if an expression has all of the same values as
+		* the passed in expression.
+		* @param e the expression to be checked against
+		* @return true if all the values are the same and false otherwise.
+		*/
+	public boolean equals(Expression e){
+
+    if(e instanceof OpperationExpression){
+      final OpperationExpression c = (OpperationExpression)e;
+      //System.out.println(this._opperation.equals(c.toString())+ ", "+this.equalsHelper(c.getChildren()));
+      if(this._opperation.equals(c.toString()) && this.equalsHelper(c.getChildren()))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+    * Checks if the expresion's children are equal to each other.
+    * @param lst the list of children that is going to be compared against
+    * @return false if any of the children are not equal to each other and
+    * true otherwise.
+    */
+  private boolean equalsHelper(List<Expression> lst){
+    for(int i=0;i<this._children.size();i++){
+      if(!this._children.get(i).equals(lst.get(i))){
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+    * Moves the child at an index to another idex.
+    * @param toMove the index the that child is going to be moved to.
+    * @param isMoved the index of the child to be moved.
+    */
+  public void moveChild(int toMove, int isMoved){
+    this._children.add(toMove, this._children.remove(isMoved));
   }
 
 }

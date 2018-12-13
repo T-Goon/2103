@@ -82,4 +82,18 @@ public class LiteralExpression implements Expression{
     return this._box;
   }
 
+  /**
+		* Checks if an expression has all of the same values as
+		* the passed in expression.
+		* @param e the expression to be checked against
+		* @return true if all the values are the same and false otherwise.
+		*/
+  public boolean equals(Expression e){
+    if(this._value.equals(e.toString())){
+      return true;
+    }
+
+    return false;
+  }
+
 }

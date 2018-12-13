@@ -28,13 +28,17 @@ public class ExpressionEditor extends Application {
 	private static class MouseEventHandler implements EventHandler<MouseEvent> {//TODO
 		static private Pane _p;
 		static private CompoundExpression _root;
-		static Node _focus;
-		static boolean _hasBeenDragged = false;
+		static private Expression _focus;
+		static private boolean _hasBeenDragged = false;
+		static private Node _deepCopy;
+		static private List<OpperationExpression> _configs;
 
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
 			MouseEventHandler._p = pane_;
 			MouseEventHandler._root = rootExpression_;
 			MouseEventHandler._focus = null;
+			MouseEventHandler._deepCopy = null;
+			MouseEventHandler._configs = null;
 		}
 
 		public void handle (MouseEvent event) {
@@ -54,12 +58,56 @@ public class ExpressionEditor extends Application {
 				}
 				// The mouse was previously dragged so this is a drag and release
 				else{
-					System.out.println(0);
+					// At the end dragging a focus reset all values releated to the focus
+					MouseEventHandler.resetFocusValues();
+					System.out.println(MouseEventHandler._root.convertToString(0));
+
 					MouseEventHandler._hasBeenDragged = false;
 				}
 			}
 			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-				System.out.println(2);
+				System.out.println(x);
+				// 1.Grey out dragged node X
+				// 2.Calculate the x position of where the node would go if it was moved.
+				// 3.Have the mouse drag an image around. X
+				// 4.Show the expression where mouse is closest to a position.
+				// 5.Makse sure to edit the expresions and not just the javafx nodes
+
+				// Make sure a focus exists
+				if(MouseEventHandler._focus != null){
+					// Make a deep copy to drag is one does not exist and grey out the focus
+					if(MouseEventHandler._deepCopy == null){
+						MouseEventHandler._focus.getNode().setOpacity(.6);
+						MouseEventHandler._deepCopy = MouseEventHandler._focus.deepCopy().getNode();
+						MouseEventHandler._p.getChildren().add(MouseEventHandler._deepCopy);
+					}
+					// Have the deep copy follow the mouse
+					else{
+						MouseEventHandler.moveDeepCopy(x, y);
+					}
+
+					if(MouseEventHandler._configs == null){
+						MouseEventHandler._configs = MouseEventHandler.calcualteFocusParentConfigs();
+						// replace focus parent with the config copy
+					}
+					else{
+						final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
+						Integer focusIndex = null;
+						for(int i=0;i<parent.getChildren().size();i++){
+							if(parent.getChildren().get(i).equals(MouseEventHandler._focus))
+								focusIndex = i;
+						}
+
+						parent.moveChild(MouseEventHandler.findNearestConfigIndex(x), focusIndex);
+
+						MouseEventHandler._p.getChildren().clear();
+						final OpperationExpression root = (OpperationExpression)MouseEventHandler._root;
+						root.clearNode();
+						MouseEventHandler._p.getChildren().add(MouseEventHandler._root.getNode());
+					}
+
+				}
+
 				MouseEventHandler._hasBeenDragged = true;
 			}
 
@@ -70,31 +118,29 @@ public class ExpressionEditor extends Application {
 			* @param x the x position of where the user clicked.
 			* @param y the y position of where the user clicked.
 			*/
-		private static Node findFocus(double x, double y){
+		private static Expression findFocus(double x, double y){
 			// Check if there is no focus and if the position of the mouse is in the expression's bounds
 			if(MouseEventHandler._focus == null &&
 			MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).contains(x, y)){
-				return MouseEventHandler._root.getNode();
+				return MouseEventHandler._root;
 			}
 
-			Pane focus = null;
-			// Make sure the current focus is a pane so that it will have children
-			if(MouseEventHandler._focus instanceof Pane){
-				focus = (Pane)MouseEventHandler._focus;
-			}
 			// If a focus if a pane check if the user clicked on of its children
-			if(focus != null){
-				for(Node n : focus.getChildren()){
+			if(MouseEventHandler._focus != null && MouseEventHandler._focus.getNode() instanceof Pane){
+				OpperationExpression focus = (OpperationExpression)MouseEventHandler._focus;
+				for(int i=0;i<focus.getChildren().size();i++){
+					Node n = focus.getChildren().get(i).getNode();
+
 					if(n.localToScene(n.getBoundsInLocal()).contains(x, y)){
 						// If you click on a label make sure that it is not a +/*/(/) label
 						if(!(n instanceof Label)){
-								return n;
+								return focus.getChildren().get(i);
 						}
 						else{
 							final Label l = (Label)n;
 							if(!(l.getText().equals("+") || l.getText().equals("*") ||
 							l.getText().equals(")") || l.getText().equals("("))){
-								return n;
+								return focus.getChildren().get(i);
 							}
 						}
 					}
@@ -111,8 +157,122 @@ public class ExpressionEditor extends Application {
 			*/
 		private static void setBorder(String css){
 			if(MouseEventHandler._focus != null)
-				MouseEventHandler._focus.setStyle(css);
+				MouseEventHandler._focus.getNode().setStyle(css);
 
+		}
+
+		/**
+			* Reset values related to the focus if there is one.
+			*/
+		private static void resetFocusValues(){
+			if(MouseEventHandler._focus != null){
+				MouseEventHandler._focus.getNode().setOpacity(1);
+				MouseEventHandler.setBorder("");
+				MouseEventHandler._focus = null;
+				MouseEventHandler._p.getChildren().remove(MouseEventHandler._deepCopy);
+				MouseEventHandler._deepCopy = null;
+				MouseEventHandler._configs = null;
+			}
+		}
+
+		/**
+			* Calculates and changes the position of the deep copy so that it follows the mouse.
+			*/
+		private static void moveDeepCopy(double x, double y){
+			MouseEventHandler._deepCopy.setTranslateX(x - (MouseEventHandler._deepCopy.getLayoutX() +
+			MouseEventHandler._deepCopy.localToScene(MouseEventHandler._deepCopy.getBoundsInLocal()).getWidth()/2));
+
+			MouseEventHandler._deepCopy.setTranslateY(y - (MouseEventHandler._deepCopy.getLayoutY() +
+			MouseEventHandler._deepCopy.localToScene(MouseEventHandler._deepCopy.getBoundsInLocal()).getHeight()*2));
+		}
+
+		/**
+			* Calculates all possible configurations of
+			* the focus in its parent if it has one.
+			* @return all possible configurations of
+			* the focus in its parent if it has one.
+			*/
+		private static List<OpperationExpression> calcualteFocusParentConfigs(){
+			final List<OpperationExpression> configs = new ArrayList<OpperationExpression>();
+			OpperationExpression parentCopy = null;
+			final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
+			final int focusIndex;
+
+			// Make sure a parent expression exists
+			if(parent != null){
+				focusIndex = parent.getChildren().indexOf(MouseEventHandler._focus);
+
+				// Generate the possible configurations and add them to a list.
+				for(int i=0;i<parent.getChildren().size();i++){
+					parentCopy = (OpperationExpression)parent.deepCopy();
+					parentCopy.getChildren().add(i, parentCopy.getChildren().remove(focusIndex));
+					configs.add(parentCopy);
+				}
+				return configs;
+			}
+
+			return null;
+		}
+
+		/**
+			* Finds the node configuration that is closest to the mouse x coordinate.
+			* @param x the x coordinate of the mouse.
+			* @return the node configuration that is closest to the mouse.
+			*/
+		private static int findNearestConfigIndex(double x){
+			final Map<Expression, Double> siblingSizes = new HashMap<Expression, Double>();
+			final List<Double> pos = new ArrayList<Double>();
+			final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
+			System.out.println(MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).getMinX());
+
+			for(Expression e : parent.getChildren()){
+				if(!MouseEventHandler._focus.equals(e)){
+				siblingSizes.put(e, e.getNode().getLayoutBounds().getWidth());
+				}
+			}
+
+			//have list of expresions
+			for(OpperationExpression e  : MouseEventHandler._configs){
+				double sumBeforeFocus = 0;
+				for(Expression c : e.getChildren()){ // each config's children
+					if(!c.equals(MouseEventHandler._focus)){
+						sumBeforeFocus += siblingSizes.get(MouseEventHandler.findCorrectC(c, parent));
+					}
+					else{
+						break;
+					}
+				}
+				pos.add(MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).getMinX() +
+				sumBeforeFocus);
+			}
+
+			int closestIndex = 0;
+			for(int i=1;i<pos.size();i++){
+				if(Math.abs(pos.get(i) - x) < Math.abs(pos.get(closestIndex) - x)){
+					closestIndex = i;
+				}
+			}
+
+			for(double d : pos)
+				System.out.println(d);
+			return closestIndex;
+
+		}
+
+		/**
+			* Find the original node from a copy.
+			* @param c the copy that is to be found
+			* @param parent the parent of the original expresion
+			* @return the original that the copy was made from.
+			*/
+		private static Expression findCorrectC(Expression c, OpperationExpression parent){
+			for(Expression e : parent.getChildren()){
+				if(e.equals(c)){
+					return e;
+				}
+			}
+
+			return null;
 		}
 
 	}
