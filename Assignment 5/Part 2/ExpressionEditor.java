@@ -32,6 +32,9 @@ public class ExpressionEditor extends Application {
 		static private boolean _hasBeenDragged = false;
 		static private Node _deepCopy;
 		static private List<OpperationExpression> _configs;
+		static private int ROUGHCHARWIDTH = 10;
+		static private double GREY = .6;
+		static private double BLACK = 1;
 
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
 			MouseEventHandler._p = pane_;
@@ -45,72 +48,26 @@ public class ExpressionEditor extends Application {
 			final double x = event.getSceneX();
 			final double y = event.getSceneY();
 
-			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
-
-			}
-			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
+			if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				// The mouse has not been dragged so this is a click
 				if(!MouseEventHandler._hasBeenDragged){
 					MouseEventHandler.setBorder("");
 					MouseEventHandler._focus =  MouseEventHandler.findFocus(x, y);
 					MouseEventHandler.setBorder("-fx-border-color: red;");
-					System.out.println(MouseEventHandler._focus);
 				}
 				// The mouse was previously dragged so this is a drag and release
 				else{
+					System.out.println(MouseEventHandler._root.convertToString(0));
 					// At the end dragging a focus reset all values releated to the focus
 					MouseEventHandler.resetFocusValues();
-					System.out.println(MouseEventHandler._root.convertToString(0));
-
 					MouseEventHandler._hasBeenDragged = false;
 				}
 			}
 			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED) {
-				System.out.println(x);
-				// 1.Grey out dragged node X
-				// 2.Calculate the x position of where the node would go if it was moved.
-				// 3.Have the mouse drag an image around. X
-				// 4.Show the expression where mouse is closest to a position.
-				// 5.Makse sure to edit the expresions and not just the javafx nodes
-
-				// Make sure a focus exists
-				if(MouseEventHandler._focus != null){
-					// Make a deep copy to drag is one does not exist and grey out the focus
-					if(MouseEventHandler._deepCopy == null){
-						MouseEventHandler._focus.getNode().setOpacity(.6);
-						MouseEventHandler._deepCopy = MouseEventHandler._focus.deepCopy().getNode();
-						MouseEventHandler._p.getChildren().add(MouseEventHandler._deepCopy);
-					}
-					// Have the deep copy follow the mouse
-					else{
-						MouseEventHandler.moveDeepCopy(x, y);
-					}
-
-					if(MouseEventHandler._configs == null){
-						MouseEventHandler._configs = MouseEventHandler.calcualteFocusParentConfigs();
-						// replace focus parent with the config copy
-					}
-					else{
-						final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
-						Integer focusIndex = null;
-						for(int i=0;i<parent.getChildren().size();i++){
-							if(parent.getChildren().get(i).equals(MouseEventHandler._focus))
-								focusIndex = i;
-						}
-
-						parent.moveChild(MouseEventHandler.findNearestConfigIndex(x), focusIndex);
-
-						MouseEventHandler._p.getChildren().clear();
-						final OpperationExpression root = (OpperationExpression)MouseEventHandler._root;
-						root.clearNode();
-						MouseEventHandler._p.getChildren().add(MouseEventHandler._root.getNode());
-					}
-
-				}
+				MouseEventHandler.dragNode(x, y);
 
 				MouseEventHandler._hasBeenDragged = true;
 			}
-
 		}
 
 		/**
@@ -120,9 +77,10 @@ public class ExpressionEditor extends Application {
 			*/
 		private static Expression findFocus(double x, double y){
 			// Check if there is no focus and if the position of the mouse is in the expression's bounds
-			if(MouseEventHandler._focus == null &&
-			MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).contains(x, y)){
-				return MouseEventHandler._root;
+			if(MouseEventHandler._focus == null){// &&
+			//MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).contains(x, y)){
+				//return MouseEventHandler._root;
+				MouseEventHandler._focus = MouseEventHandler._root;
 			}
 
 			// If a focus if a pane check if the user clicked on of its children
@@ -166,7 +124,7 @@ public class ExpressionEditor extends Application {
 			*/
 		private static void resetFocusValues(){
 			if(MouseEventHandler._focus != null){
-				MouseEventHandler._focus.getNode().setOpacity(1);
+				MouseEventHandler._focus.getNode().setOpacity(MouseEventHandler.BLACK);
 				MouseEventHandler.setBorder("");
 				MouseEventHandler._focus = null;
 				MouseEventHandler._p.getChildren().remove(MouseEventHandler._deepCopy);
@@ -220,32 +178,19 @@ public class ExpressionEditor extends Application {
 			* @return the node configuration that is closest to the mouse.
 			*/
 		private static int findNearestConfigIndex(double x){
-			final Map<Expression, Double> siblingSizes = new HashMap<Expression, Double>();
-			final List<Double> pos = new ArrayList<Double>();
+			final Map<Expression, Double> siblingSizes;
+			final List<Double> pos;
 			final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
-			System.out.println(MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).getMinX());
 
-			for(Expression e : parent.getChildren()){
-				if(!MouseEventHandler._focus.equals(e)){
-				siblingSizes.put(e, e.getNode().getLayoutBounds().getWidth());
-				}
-			}
+			// Get the width of each of the focus' sibling nodes and store them in a map
+			siblingSizes = MouseEventHandler.getSiblingWidths(parent.getChildren(), MouseEventHandler._focus);
 
-			//have list of expresions
-			for(OpperationExpression e  : MouseEventHandler._configs){
-				double sumBeforeFocus = 0;
-				for(Expression c : e.getChildren()){ // each config's children
-					if(!c.equals(MouseEventHandler._focus)){
-						sumBeforeFocus += siblingSizes.get(MouseEventHandler.findCorrectC(c, parent));
-					}
-					else{
-						break;
-					}
-				}
-				pos.add(MouseEventHandler._root.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).getMinX() +
-				sumBeforeFocus);
-			}
+			// Find the amount of space before the focus appears in each config of its
+			// parent node and add it to a list
+			pos = MouseEventHandler.findPosOfConfigs(siblingSizes, parent);
 
+			// Find the closest position to the mouse and return its corresponding index
+			// to the configs list
 			int closestIndex = 0;
 			for(int i=1;i<pos.size();i++){
 				if(Math.abs(pos.get(i) - x) < Math.abs(pos.get(closestIndex) - x)){
@@ -253,10 +198,7 @@ public class ExpressionEditor extends Application {
 				}
 			}
 
-			for(double d : pos)
-				System.out.println(d);
 			return closestIndex;
-
 		}
 
 		/**
@@ -273,6 +215,111 @@ public class ExpressionEditor extends Application {
 			}
 
 			return null;
+		}
+
+		/**
+			* Find the widths of the nodes that appear before exp.
+			* @param lst the list of expressions where the widths will be found.
+			* @param exp the exp that limits the search
+			* @return a map of each node before exp and its width
+			*/
+		private static Map<Expression, Double> getSiblingWidths(List<Expression> lst, Expression exp){
+			final Map<Expression, Double> widths = new HashMap<Expression, Double>();
+			for(Expression e : lst){
+				if(!exp.equals(e)){
+				widths.put(e, e.getNode().getLayoutBounds().getWidth());
+				}
+			}
+			return widths;
+		}
+
+		/**
+			* Find the position of each config.
+			* @param siblingSizes a map of each sibling node before the focus and its width
+			* @param parent the parent expresion of the focus
+			* @return a list containing the x positions of each config
+			*/
+		private static List<Double> findPosOfConfigs(Map<Expression, Double> siblingSizes, OpperationExpression parent){
+			final List<Double> pos = new ArrayList<Double>();
+
+			for(OpperationExpression e  : MouseEventHandler._configs){
+				double sumBeforeFocus = 0;
+				int count = 0;
+
+				for(Expression c : e.getChildren()){ // each config's children
+					if(!c.equals(MouseEventHandler._focus)){// Stop when the focus is reached
+						sumBeforeFocus += siblingSizes.get(MouseEventHandler.findCorrectC(c, parent));
+						count ++;
+					}
+					else{
+						break;
+					}
+				}
+				pos.add(parent.getNode().localToScene(MouseEventHandler._root.getNode().getBoundsInLocal()).getMinX() +
+				sumBeforeFocus + (MouseEventHandler.ROUGHCHARWIDTH * count));
+			}
+			return pos;
+		}
+
+		/**
+			* Display the current state of the expresion.
+			*/
+		private static void dispalyNearestConfig(){
+			MouseEventHandler._p.getChildren().clear();
+			final OpperationExpression root = (OpperationExpression)MouseEventHandler._root;
+			root.clearNode();
+			MouseEventHandler._p.getChildren().add(MouseEventHandler._root.getNode());
+			MouseEventHandler._p.getChildren().add(MouseEventHandler._deepCopy);
+		}
+
+		/**
+			* Find the index of the focus in its parent's children list.
+			* @param parent the parent of the focus.
+			* @return the index of where the focus is in its parent's children list
+			*/
+		private static int findFocusIndex(OpperationExpression parent){
+			Integer focusIndex = null;
+			// Find the focus' position in its parent's children list
+			for(int i=0;i<parent.getChildren().size();i++){
+				if(parent.getChildren().get(i).equals(MouseEventHandler._focus))
+					focusIndex = i;
+			}
+			return focusIndex;
+		}
+
+		/**
+			* Lets mouse drag nodes across the scene.
+			* @param x the x position of the mouse in the scene
+			* @param y the y position of the mouse in the scene
+			*/
+		private static void dragNode(double x, double y){
+			// Make sure a focus exists
+			if(MouseEventHandler._focus != null){
+
+				if(MouseEventHandler._configs == null){
+					MouseEventHandler._configs = MouseEventHandler.calcualteFocusParentConfigs();
+				}
+				else{
+					final OpperationExpression parent = (OpperationExpression)MouseEventHandler._focus.getParent();
+
+					parent.moveChild(MouseEventHandler.findNearestConfigIndex(x),
+					MouseEventHandler.findFocusIndex(parent));
+
+					// Display the config that is nearest to the mouse
+					MouseEventHandler.dispalyNearestConfig();
+				}
+
+				// Make a deep copy to drag is one does not exist and grey out the focus
+				if(MouseEventHandler._deepCopy == null){
+					MouseEventHandler._focus.getNode().setOpacity(MouseEventHandler.GREY);
+					MouseEventHandler._deepCopy = MouseEventHandler._focus.deepCopy().getNode();
+					MouseEventHandler._p.getChildren().add(MouseEventHandler._deepCopy);
+				}
+				// Have the deep copy follow the mouse
+				else{
+					MouseEventHandler.moveDeepCopy(x, y);
+				}
+			}
 		}
 
 	}
