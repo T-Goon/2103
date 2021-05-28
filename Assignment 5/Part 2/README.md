@@ -1,6 +1,6 @@
 # Assignment 5 Part 2 Mathematical Expression Editor
 
-A Javafx drag and drop mathematical expression editor. Clicking a section of the expression will select it to be dragged. Cliking within a selection will allow the selection of sub-expressions.
+A Javafx drag and drop mathematical expression editor. Clicking a section of the expression will select it to be dragged. Clicking within a selection will allow the selection of sub-expressions.
 
 More details can be found in "Assignment 5.pdf"
 
