@@ -2,6 +2,7 @@
 
 All the programming assignments for WPI class CS 2103 Accelerated Object Oriented Design.
 
+Descriptions of each assignment are contained within their respective folders.
 
 Dependancies
 - Java 11.0.1
